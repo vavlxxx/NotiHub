@@ -82,7 +82,8 @@ class BaseRepository:
         return self.schema.model_validate(obj)
 
 
-    async def edit(self, data: BaseDTO, exclude_unset=True, exclude_fields=None, **filter_by):
+    async def edit(self, data: BaseDTO, exclude_unset=True, exclude_fields=None, *filter, **filter_by):
+        await self.get_one(*filter, **filter_by)
         exclude_fields = exclude_fields or set()
         to_update = data.model_dump(exclude=exclude_fields, exclude_unset=exclude_unset)
         if not to_update:
@@ -98,5 +99,6 @@ class BaseRepository:
 
 
     async def delete(self, *filter, **filter_by):
+        await self.get_one(*filter, **filter_by)
         delete_obj_stmt = delete(self.model).filter(*filter).filter_by(**filter_by)
         await self.session.execute(delete_obj_stmt)

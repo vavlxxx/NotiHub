@@ -10,22 +10,18 @@ class TemplateRepository(BaseRepository):
     model = Template
     schema = TemplateDTO
 
-    async def add(self, data: TemplateAddDTO, **params):
-        add_obj_stmt = (
-            insert(self.model)
-            .values(**data.model_dump(), **params)
-            .returning(self.model)
-        )
-        result = await self.session.execute(add_obj_stmt)
-
-        obj = result.scalars().one()
+    async def get_all_filtered_with_params(self, limit: int, offset: int, category_id: int | None, **filter_by):
         query = (
             select(self.model)
-            .filter_by(id=obj.id)
-            .options(joinedload(Template.category))
+            .filter_by(**filter_by)
         )
+        if category_id:
+            query = query.filter_by(category_id=category_id)
+
+        query = query.limit(limit).offset(offset) 
         result = await self.session.execute(query)
-        return self.schema.model_validate(result.scalars().one())
+
+        return [self.schema.model_validate(obj) for obj in result.scalars().all()]
 
 
 class TemplateCategoryRepository(BaseRepository):
