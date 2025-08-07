@@ -14,7 +14,7 @@ class TemplateCategory(Base):
 
 
 class Template(Base):
-    title: Mapped[str] = mapped_column(unique=True)
+    title: Mapped[str]
     content: Mapped[str]
     description: Mapped[str | None]
     category_id: Mapped[int] = mapped_column(ForeignKey("template_categories.id"))
