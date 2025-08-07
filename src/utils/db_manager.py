@@ -1,3 +1,8 @@
+from sqlalchemy import text
+from src.repos.templates import (
+    TemplateRepository,
+    TemplateCategoryRepository
+)
 
 
 class DB_Manager:
@@ -6,8 +11,9 @@ class DB_Manager:
         self.session_factory = session_factory
     
     async def __aenter__(self):
-        self.session = await self.session_factory()
-        
+        self.session = self.session_factory()
+        self.templates = TemplateRepository(self.session)
+        self.template_categories = TemplateCategoryRepository(self.session)
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -15,7 +21,7 @@ class DB_Manager:
         await self.session.close()
     
     async def check_connection(self):
-        await self.session.execute("SELECT 1;")
+        await self.session.execute(text("SELECT 1;"))
 
     async def commit(self):
         await self.session.commit()
