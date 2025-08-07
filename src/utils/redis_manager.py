@@ -1,4 +1,4 @@
-from redis import Redis
+from redis.asyncio import Redis
 from src.settings import settings
 
 
@@ -9,7 +9,7 @@ class RedisManager:
 
     async def connect(self) -> Redis:
         self._redis = Redis(host=self.host, port=self.port)
-        self._redis.ping()
+        await self._redis.ping()
 
     async def set(self, key: str, value: str, ex: int | None = None):
         await self._redis.set(name=key, value=value, ex=ex)

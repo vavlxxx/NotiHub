@@ -12,8 +12,14 @@ class Settings:
     DB_USER: str
     DB_PASS: str
     DB_HOST: str
-    DB_PORT: str
+    DB_PORT: int
     DB_NAME: str
+
+    REDIS_HOST: str
+    REDIS_PORT: int
+
+    UVICORN_HOST: str
+    UVICORN_PORT: int
 
     def _get_env_var(env_var: str, to_cast: type) -> str:
         value = os.getenv(env_var)
@@ -27,10 +33,20 @@ class Settings:
             DB_USER=cls._get_env_var('DB_USER', to_cast=str),
             DB_PASS=cls._get_env_var('DB_PASS', to_cast=str),
             DB_HOST=cls._get_env_var('DB_HOST', to_cast=str),
-            DB_PORT=cls._get_env_var('DB_PORT', to_cast=str),
+            DB_PORT=cls._get_env_var('DB_PORT', to_cast=int),
             DB_NAME=cls._get_env_var('DB_NAME', to_cast=str),
+
+            REDIS_HOST=cls._get_env_var('REDIS_HOST', to_cast=str),
+            REDIS_PORT=cls._get_env_var('REDIS_PORT', to_cast=int),
+
+            UVICORN_HOST=cls._get_env_var('UVICORN_HOST', to_cast=str),
+            UVICORN_PORT=cls._get_env_var('UVICORN_PORT', to_cast=int),
         )
     
+    @property
+    def redis_url(self):
+        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"
+
     @property
     def database_url(self) -> str:
         return (f'postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}'
