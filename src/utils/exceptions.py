@@ -1,10 +1,28 @@
+from fastapi import HTTPException
 
 
-class ObjectNotFoundError(Exception):
+class NotiHubBaseError(Exception):
     pass
 
-class ObjectExistsError(Exception):
+class ObjectNotFoundError(NotiHubBaseError):
     pass
 
-class InvalidDBDataError(Exception):
+class TemplateNotFoundError(ObjectNotFoundError):
+    pass
+
+class ObjectExistsError(NotiHubBaseError):
+    pass
+
+class InvalidDBDataError(NotiHubBaseError):
+    pass
+
+#########################################
+
+class NotiHubBaseHTTPError(HTTPException):
+    pass
+
+class ObjectNotFoundHTTPError(NotiHubBaseHTTPError):
+    pass
+
+class TemplateNotFoundHTTPError(ObjectNotFoundHTTPError):
     pass
