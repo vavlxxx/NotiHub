@@ -31,9 +31,6 @@ class InvalidDBDataError(NotiHubBaseError):
 class LoginDataError(NotiHubBaseError):
     pass
 
-class OnlyForAdminsError(NotiHubBaseError):
-    pass
-
 #########################################
 
 class NotiHubBaseHTTPError(HTTPException):
@@ -73,12 +70,13 @@ class ObjectExistsHTTPError(NotiHubBaseHTTPError):
     detail="Объект уже существует"
 
 class UserExistsHTTPError(NotiHubBaseHTTPError):
+    status_code=409
     detail="Пользователь с таким логином уже существует"
 
 class TemplateCategoryExistsHTTPError(ObjectExistsHTTPError):
     detail="Категория для шаблона уже существует"
 
-class OnlyForAdminsHTTPError(NotiHubBaseHTTPError):
+class OnlyStaffHTTPError(NotiHubBaseHTTPError):
     status_code=403
     detail="Доступно только администраторам"
     

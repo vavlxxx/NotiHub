@@ -3,12 +3,17 @@ from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from src.models.base import Base
-from src.schemas.users import ContactChannelType
+from src.utils.enums import ContactChannelType, UserRole
 
 
 class User(Base):
     first_name: Mapped[str | None]
     last_name: Mapped[str | None]
+    role: Mapped[UserRole] = mapped_column(
+        ENUM(UserRole), 
+        nullable=False,
+        server_default=UserRole.USER
+    )
     username: Mapped[str] = mapped_column(unique=True)
     password_hash: Mapped[str]
     notification_enabled: Mapped[bool] = mapped_column(default=True)

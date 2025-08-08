@@ -13,6 +13,7 @@ from src.schemas.users import (
     UserRegisterRequestDTO,
     UserUpdateDTO,
 )
+from src.utils.enums import UserRole
 from src.utils.exceptions import (
     LoginDataError,
     ObjectExistsError,
@@ -25,15 +26,22 @@ from src.utils.exceptions import (
 class UserService(BaseService):
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
     def _hash_password(self, password) -> str:
         return self.pwd_context.hash(password)
+
 
     def _verify_password(self, plain_password, password_hash):
         return self.pwd_context.verify(plain_password, password_hash)
 
-    async def add_user(self, user_data: UserRegisterRequestDTO):
+
+    async def add_user(self, user_data: UserRegisterRequestDTO, user_meta: dict = None):
         password_hash = self._hash_password(user_data.password)
-        data = user_data.model_dump(exclude={"password"})
+        fields_to_eclude = {"password"}
+        if user_meta and not user_meta.get("is_admin"):
+            fields_to_eclude.add("role")
+
+        data = user_data.model_dump(exclude=fields_to_eclude)
         new_user_data = UserRegisterDTO(**data, password_hash=password_hash)
 
         try:
@@ -42,13 +50,19 @@ class UserService(BaseService):
             raise UserExistsError from exc
         await self.db.commit()
 
-    async def edit_user(self, user_data: UserUpdateDTO, user_id: int):
+
+    async def edit_user(self, user_data: UserUpdateDTO, user_meta: dict):
         try:
-            await self.db.users.get_one(id=user_id)
+            await self.db.users.get_one(id=user_meta.get("user_id"))
         except ObjectNotFoundError as exc:
             raise UserNotFoundError from exc
-        await self.db.users.edit(user_data, id=user_id)
+        
+        if not user_meta.get("is_admin"):
+            user_data = UserUpdateDTO(**user_data.model_dump(exclude={"role"}))
+
+        await self.db.users.edit(user_data, id=user_meta.get("user_id"))
         await self.db.commit()
+
 
     async def login_user(self, user_data: UserLoginRequestDTO, response):
         try:
@@ -60,12 +74,13 @@ class UserService(BaseService):
             raise LoginDataError
 
         token_data = {"user_id": user.id}
-        if user_data.username == settings.DB_ADMIN_LOGIN:
+        if user.role == UserRole.ADMIN:
             token_data["is_admin"] = True
 
         access_token = self.create_access_token(token_data)
         response.set_cookie(key="access_token", value=access_token)
         return access_token
+
 
     async def get_user(self, *filter, exclude_channels: bool = False, **filter_by):
         try:
@@ -78,6 +93,7 @@ class UserService(BaseService):
             raise UserNotFoundError from exc
         return user
 
+
     @staticmethod
     def create_access_token(data: dict):
         to_encode = data.copy()
@@ -89,6 +105,7 @@ class UserService(BaseService):
             to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
         )
         return encoded_jwt
+
 
     @staticmethod
     def decode_access_token(access_token) -> dict[str, str]:

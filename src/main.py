@@ -10,6 +10,7 @@ from fastapi import FastAPI
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 from src.utils.db_manager import DB_Manager
 from src.utils.redis_manager import redis_manager
+from src.utils.enums import UserRole
 from src.utils.exceptions import UserExistsError
 
 from src.db import sessionmaker
@@ -36,7 +37,8 @@ async def lifespan(app: FastAPI):
             await UserService(db).add_user(
                 UserRegisterRequestDTO(
                     username=settings.DB_ADMIN_LOGIN, 
-                    password=settings.DB_ADMIN_PASSWORD
+                    password=settings.DB_ADMIN_PASSWORD,
+                    role=UserRole.ADMIN
                 )
             )
         except UserExistsError as exc:

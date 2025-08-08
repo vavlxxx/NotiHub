@@ -1,13 +1,7 @@
-from enum import Enum
-
 from pydantic import Field
 
 from src.schemas.base import BaseDTO
-
-
-class ContactChannelType(str, Enum):
-    EMAIL = "Почта"
-    TELEGRAM = "Telegram"
+from src.utils.enums import ContactChannelType, UserRole
 
 
 class UserChannelAddDTO(BaseDTO):
@@ -21,24 +15,26 @@ class UserChannelDTO(UserChannelAddDTO):
 
 
 class _UserDTO(BaseDTO):
-    first_name: str | None
-    last_name: str | None
-    notification_enabled: bool | None
+    first_name: str | None = None
+    last_name: str | None  = None
+    notification_enabled: bool = True
 
-class UserRegisterRequestDTO(BaseDTO):
-    username: str | None
+class UserLoginRequestDTO(BaseDTO):
+    username: str
     password: str = Field(..., min_length=8)
 
-class UserLoginRequestDTO(UserRegisterRequestDTO): ...
-
+class UserRegisterRequestDTO(UserLoginRequestDTO):
+    role: UserRole = UserRole.USER
 
 class UserRegisterDTO(BaseDTO):
     username: str
     password_hash: str
+    role: UserRole = UserRole.USER
 
 class UserDTO(_UserDTO):
     id: int
     username: str
+    role: UserRole
     
 class UserWithChannelsDTO(UserDTO):
     contact_channels: list[UserChannelDTO]

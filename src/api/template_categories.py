@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Depends
 
 from src.dependencies.db import DBDep
 from src.dependencies.templates import PaginationDep
-from src.dependencies.users import AdminDep
+from src.dependencies.users import only_staff
 from src.schemas.templates import TemplateCategoryAddDTO, TemplateCategoryUpdateDTO
 from src.services.templates import TemplateCategoryService
 from src.utils.exceptions import (
@@ -38,10 +38,12 @@ async def get_categories_list(
     }
 
 
-@router.post("/", summary="Добавить новую категорию | ONLY ADMIN")
+@router.post(
+        path="/", 
+        summary="Добавить новую категорию | Только для персонала", 
+        dependencies=[Depends(only_staff)])
 async def add_category(
     db: DBDep,
-    _: AdminDep,
     data: TemplateCategoryAddDTO = Body(description="Данные о категории"),
 ):  
     try:
@@ -56,10 +58,12 @@ async def add_category(
     }
 
 
-@router.patch("/{category_id}", summary="Обновить категорию шаблона | ONLY ADMIN")
+@router.patch(
+        path="/{category_id}", 
+        summary="Обновить категорию шаблона | Только для персонала", 
+        dependencies=[Depends(only_staff)])
 async def update_category(
     db: DBDep,
-    _: AdminDep,
     data: TemplateCategoryUpdateDTO = Body(description="Данные о категории"),
     category_id: int = Path(),
 ):  
@@ -73,10 +77,12 @@ async def update_category(
     return {"status": "OK"}
 
 
-@router.delete("/{category_id}", summary="Удалить категорию шаблона | ONLY ADMIN")
+@router.delete(
+        path="/{category_id}", 
+        summary="Удалить категорию шаблона | Только для персонала", 
+        dependencies=[Depends(only_staff)])
 async def delete_category(
     db: DBDep,
-    _: AdminDep,
     category_id: int = Path(),
 ):
     try:
