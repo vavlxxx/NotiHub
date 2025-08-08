@@ -57,4 +57,8 @@ class TemplateService(BaseService):
             await self.db.commit()
         except ObjectNotFoundError as exc:
             raise TemplateNotFoundError from exc
-        
+
+
+class TemplateCategoryService(BaseService):
+    ...
+    

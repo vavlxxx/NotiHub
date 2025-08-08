@@ -10,25 +10,41 @@ class ContactChannelType(str, Enum):
     TELEGRAM = "Telegram"
 
 
+class UserChannelAddDTO(BaseDTO):
+    user_id: int
+    contact_value: str
+    channel_type: ContactChannelType
+    
+class UserChannelDTO(UserChannelAddDTO):
+    id: int
+    is_active: bool
+
 
 class _UserDTO(BaseDTO):
-    username: str | None = Field(None, min_length=8)
-    first_name: str | None = Field(None)
-    last_name: str | None = Field(None)
+    first_name: str | None
+    last_name: str | None
+    notification_enabled: bool | None
+
+class UserRegisterRequestDTO(BaseDTO):
+    username: str | None
+    password: str = Field(..., min_length=8)
+
+class UserLoginRequestDTO(UserRegisterRequestDTO): ...
+
 
 class UserRegisterDTO(BaseDTO):
-    username: str = Field(..., min_length=8)
-    password: str = Field(..., min_length=8)
+    username: str
+    password_hash: str
 
 class UserDTO(_UserDTO):
     id: int
-    hashed_password: str
+    username: str
+    
+class UserWithChannelsDTO(UserDTO):
+    contact_channels: list[UserChannelDTO]
 
-class UserLoginDTO(BaseDTO):
-    username: str = Field(..., min_length=8)
-    passwod: str = Field(..., min_length=8)
+class UserPasswdDTO(UserDTO):
+    password_hash: str
 
 class UserUpdateDTO(_UserDTO):
     ...
-
-

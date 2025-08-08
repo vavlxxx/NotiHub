@@ -1,8 +1,9 @@
 import os
-import jinja2
+
 from typing_extensions import Self
 from dataclasses import dataclass
 
+import jinja2
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
@@ -16,11 +17,18 @@ class Settings:
     DB_PORT: int
     DB_NAME: str
 
+    DB_ADMIN_LOGIN: str
+    DB_ADMIN_PASSWORD: str
+
     REDIS_HOST: str
     REDIS_PORT: int
 
     UVICORN_HOST: str
     UVICORN_PORT: int
+
+    JWT_ALGORITHM: str
+    JWT_SECRET_KEY: str
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int
 
     def _get_env_var(env_var: str, to_cast: type) -> str:
         value = os.getenv(env_var)
@@ -37,11 +45,18 @@ class Settings:
             DB_PORT=cls._get_env_var('DB_PORT', to_cast=int),
             DB_NAME=cls._get_env_var('DB_NAME', to_cast=str),
 
+            DB_ADMIN_LOGIN=cls._get_env_var('DB_ADMIN_LOGIN', to_cast=str),
+            DB_ADMIN_PASSWORD=cls._get_env_var('DB_ADMIN_PASSWORD', to_cast=str),
+
             REDIS_HOST=cls._get_env_var('REDIS_HOST', to_cast=str),
             REDIS_PORT=cls._get_env_var('REDIS_PORT', to_cast=int),
 
             UVICORN_HOST=cls._get_env_var('UVICORN_HOST', to_cast=str),
             UVICORN_PORT=cls._get_env_var('UVICORN_PORT', to_cast=int),
+
+            JWT_ALGORITHM=cls._get_env_var('JWT_ALGORITHM', to_cast=str),
+            JWT_SECRET_KEY=cls._get_env_var('JWT_SECRET_KEY', to_cast=str),
+            JWT_ACCESS_TOKEN_EXPIRE_MINUTES=cls._get_env_var('JWT_ACCESS_TOKEN_EXPIRE_MINUTES', to_cast=int),
         )
     
     @property

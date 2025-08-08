@@ -7,6 +7,9 @@ class NotiHubBaseError(Exception):
 class ObjectNotFoundError(NotiHubBaseError):
     pass
 
+class UserNotFoundError(ObjectNotFoundError):
+    pass
+
 class TemplateNotFoundError(ObjectNotFoundError):
     pass
 
@@ -16,7 +19,13 @@ class TemplateCategoryNotFoundError(ObjectNotFoundError):
 class ObjectExistsError(NotiHubBaseError):
     pass
 
+class UserExistsError(ObjectExistsError):
+    pass
+
 class InvalidDBDataError(NotiHubBaseError):
+    pass
+
+class LoginDataError(NotiHubBaseError):
     pass
 
 #########################################
@@ -38,6 +47,22 @@ class TemplateNotFoundHTTPError(ObjectNotFoundHTTPError):
 class TemplateCategoryNotFoundHTTPError(ObjectNotFoundHTTPError):
     detail="Категория для шаблона не найдена"
 
+class UserNotFoundHTTPError(ObjectNotFoundHTTPError):
+    detail="Пользователь не найден"
+
 class TemplateSyntaxHTTPError(NotiHubBaseHTTPError):
     status_code=422
     detail="Синтаксическая ошибка в шаблоне"
+
+class NotAuthenticatedError(NotiHubBaseHTTPError):
+    status_code=401
+    detail="Пользователь не аутентифицирован"
+
+class LoginDataHTTPError(NotiHubBaseHTTPError):
+    status_code=401
+    detail="Неверные логин или пароль"
+
+class UserExistsHTTPError(NotiHubBaseHTTPError):
+    status_code=409
+    detail="Пользователь с таким логином уже существует"
+    
