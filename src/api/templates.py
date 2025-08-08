@@ -1,9 +1,9 @@
 from pathlib import Path
+
 from fastapi import APIRouter
 
 from src.dependencies.db import DBDep
-from src.dependencies.templates import PaginationDep, TemplateFiltrationDep
-from src.schemas.templates import TemplateAddDTO, TemplateUpdateDTO
+from src.dependencies.templates import PaginationDep, TemplateFiltrationDep, ValidTemplateDep
 from src.services.templates import TemplateService
 from src.utils.exceptions import (
     TemplateNotFoundError, 
@@ -55,7 +55,7 @@ async def get_template(
 
 @router.post("/", summary="Добавить шаблон")
 async def add_template(
-    data: TemplateAddDTO,
+    data: ValidTemplateDep,
     db: DBDep
 ):  
     try:
@@ -70,7 +70,7 @@ async def add_template(
 
 @router.patch("/{template_id}", summary="Обновить шаблон")
 async def update_template(
-    data: TemplateUpdateDTO,
+    data: ValidTemplateDep,
     db: DBDep,
     template_id: int = Path()
 ):  
@@ -90,7 +90,7 @@ async def delete_template(
     template_id: int = Path()
 ):
     try:
-        template = await TemplateService(db).delete_template(template_id=template_id)
+        await TemplateService(db).delete_template(template_id=template_id)
     except TemplateNotFoundError as exc:
         raise TemplateNotFoundHTTPError from exc
     

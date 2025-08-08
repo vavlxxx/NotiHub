@@ -1,4 +1,5 @@
 import os
+import jinja2
 from typing_extensions import Self
 from dataclasses import dataclass
 
@@ -54,3 +55,4 @@ class Settings:
 
 
 settings = Settings.load_from_env()
+environment = jinja2.Environment()

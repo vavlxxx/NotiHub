@@ -1,6 +1,4 @@
 from datetime import datetime
-from pydantic import model_validator
-from jinja2 import Template
 from src.schemas.base import BaseDTO
 
 
@@ -18,12 +16,6 @@ class TemplateAddDTO(BaseDTO):
     content: str
     category_id: int | None = None
     description: str | None = None
-
-    @model_validator(mode='after')
-    @classmethod
-    def validate_category_id(cls, instance):
-        Template(f"{instance.title} {instance.content}")
-        return instance
 
 class TemplateUpdateDTO(BaseDTO):
     title: str | None = None

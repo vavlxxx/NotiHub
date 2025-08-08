@@ -5,7 +5,6 @@ from sqlalchemy import delete, select, insert, update
 from sqlalchemy.exc import NoResultFound, IntegrityError, DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.db import engine
 from src.models.base import Base
 from src.schemas.base import BaseDTO
 from src.utils.exceptions import ObjectNotFoundError, ObjectExistsError, InvalidDBDataError

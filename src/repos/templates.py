@@ -1,9 +1,8 @@
-from sqlalchemy import insert, select
-from sqlalchemy.orm import joinedload
+from sqlalchemy import select
 
 from src.repos.base import BaseRepository
 from src.models.templates import Template, TemplateCategory
-from src.schemas.templates import TemplateDTO, TemplateAddDTO, TemplateCategoryDTO
+from src.schemas.templates import TemplateDTO, TemplateCategoryDTO
 
 
 class TemplateRepository(BaseRepository):

@@ -1,0 +1,40 @@
+from sqlalchemy import ForeignKey, UniqueConstraint, Enum
+from sqlalchemy.orm import mapped_column, Mapped, relationship
+
+from src.models.base import Base
+from src.schemas.users import ContactChannelType
+
+
+class User(Base):
+    first_name: Mapped[str]
+    last_name: Mapped[str]
+    username: Mapped[str] = mapped_column(unique=True)
+    password_hash: Mapped[str]
+    notification_enabled: Mapped[bool] = mapped_column(default=True)
+    contact_channels: Mapped[list["UserContactChannel"]] = relationship(
+        secondary="UserContactChannel", 
+        back_populates="user"
+    )
+
+    __tablename__ = "users"
+
+
+class UserContactChannel(Base):
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    contact_value: Mapped[str]
+    is_active: Mapped[bool] = mapped_column(default=True)
+    user: Mapped["User"] = relationship(back_populates="contact_channels")
+    channel_type: Mapped[ContactChannelType] = mapped_column(
+        Enum(ContactChannelType), 
+        nullable=False
+    )
+
+    __tablename__ = "user_contact_channels"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", 
+            "channel_type", 
+            "contact_value", 
+            name='unique_user_channel_contact'
+        ),
+    )

@@ -22,17 +22,22 @@ class InvalidDBDataError(NotiHubBaseError):
 #########################################
 
 class NotiHubBaseHTTPError(HTTPException):
-    pass
+    status_code = 400
+    detail = "Неизвестная ошибка"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(status_code=self.status_code, detail=self.detail)
 
 class ObjectNotFoundHTTPError(NotiHubBaseHTTPError):
     status_code=404
     detail="Объект не найден"
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(status_code=self.status_code, detail=self.detail)
 
 class TemplateNotFoundHTTPError(ObjectNotFoundHTTPError):
     detail="Шаблон не найден"
 
 class TemplateCategoryNotFoundHTTPError(ObjectNotFoundHTTPError):
     detail="Категория для шаблона не найдена"
+
+class TemplateSyntaxHTTPError(NotiHubBaseHTTPError):
+    status_code=422
+    detail="Синтаксическая ошибка в шаблоне"
