@@ -1,101 +1,87 @@
-# from pathlib import Path
+from pathlib import Path
 
-# from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body
 
-# from src.api.examples.templates import EXAMPLE_TEMPLATES
-# from src.dependencies.db import DBDep
-# from src.dependencies.templates import PaginationDep, TemplateFiltrationDep
-# from src.schemas.templates import TemplateAddDTO
-# from src.services.templates import TemplateCategoryService
-# from src.utils.exceptions import (
-#     TemplateNotFoundError, 
-#     TemplateNotFoundHTTPError, 
-#     TemplateCategoryNotFoundError, 
-#     TemplateCategoryNotFoundHTTPError
-# )
-
-
-# router = APIRouter(
-#     prefix="/templates",
-#     tags=["Шаблоны для уведомлений"]
-# )
+from src.dependencies.db import DBDep
+from src.dependencies.templates import PaginationDep
+from src.dependencies.users import AdminDep
+from src.schemas.templates import TemplateCategoryAddDTO, TemplateCategoryUpdateDTO
+from src.services.templates import TemplateCategoryService
+from src.utils.exceptions import (
+    TemplateCategoryExistsError,
+    TemplateCategoryExistsHTTPError,
+    TemplateCategoryNotFoundError, 
+    TemplateCategoryNotFoundHTTPError
+)
 
 
-# @router.get("/", summary="Получить список всех шаблонов")
-# async def get_templates_list(
-#     db: DBDep,
-#     pagination: PaginationDep,
-#     template_filtration: TemplateFiltrationDep
-# ):  
-#     templates = await TemplateCategoryService(db).get_templates_list(
-#         limit=pagination.limit,
-#         offset=pagination.offset,
-#         category_id=template_filtration.category_id
-#     )
-
-#     return {
-#         "page": pagination.page,
-#         "offset": pagination.offset,
-#         "data": templates
-#     }
+router = APIRouter(
+    prefix="/categories",
+    tags=["Категории шаблонов для уведомлений"]
+)
 
 
-# @router.get("/{template_id}", summary="Получить конкретный шаблон")
-# async def get_template(
-#     db: DBDep,
-#     template_id: int = Path("ID шаблона")
-# ):  
-#     try:
-#         template = await TemplateCategoryService(db).get_template(template_id=template_id)
-#     except TemplateNotFoundError as exc:
-#         raise TemplateNotFoundHTTPError from exc
+@router.get("/", summary="Получить список всех категорий для шаблонов")
+async def get_categories_list(
+    db: DBDep,
+    pagination: PaginationDep,
+):  
+    categories = await TemplateCategoryService(db).get_categories_list(
+        limit=pagination.limit,
+        offset=pagination.offset
+    )
+
+    return {
+        "page": pagination.page,
+        "offset": pagination.offset,
+        "data": categories
+    }
+
+
+@router.post("/", summary="Добавить новую категорию | ONLY ADMIN")
+async def add_category(
+    db: DBDep,
+    _: AdminDep,
+    data: TemplateCategoryAddDTO = Body(description="Данные о категории"),
+):  
+    try:
+        category = await TemplateCategoryService(db).add_category(data=data)
+    except TemplateCategoryNotFoundError as exc:
+        raise TemplateCategoryNotFoundHTTPError from exc
+    except TemplateCategoryExistsError as exc:
+        raise TemplateCategoryExistsHTTPError from exc
     
-#     return {
-#         "data": template
-#     }
+    return {
+        "data": category
+    }
 
 
-# @router.post("/", summary="Добавить шаблон")
-# async def add_template(
-#     db: DBDep,
-#     data: TemplateAddDTO = Body(description="Данные о шаблоне", openapi_examples=EXAMPLE_TEMPLATES),
-# ):  
-#     try:
-#         template = await TemplateCategoryService(db).add_template(data=data)
-#     except TemplateCategoryNotFoundError as exc:
-#         raise TemplateCategoryNotFoundHTTPError from exc
+@router.patch("/{category_id}", summary="Обновить категорию шаблона | ONLY ADMIN")
+async def update_category(
+    db: DBDep,
+    _: AdminDep,
+    data: TemplateCategoryUpdateDTO = Body(description="Данные о категории"),
+    category_id: int = Path(),
+):  
+    try:
+        await TemplateCategoryService(db).update_category(category_id=category_id, data=data)
+    except TemplateCategoryNotFoundError as exc:
+        raise TemplateCategoryNotFoundHTTPError from exc
+    except TemplateCategoryExistsError as exc:
+        raise TemplateCategoryExistsHTTPError from exc
     
-#     return {
-#         "data": template
-#     }
+    return {"status": "OK"}
 
 
-# @router.patch("/{template_id}", summary="Обновить шаблон")
-# async def update_template(
-#     db: DBDep,
-#     data: TemplateAddDTO,
-#     template_id: int = Path()
-# ):  
-#     try:
-#         await TemplateCategoryService(db).update_template(template_id=template_id, data=data)
-#     except TemplateNotFoundError as exc:
-#         raise TemplateNotFoundHTTPError from exc
-#     except TemplateCategoryNotFoundError as exc:
-#         raise TemplateCategoryNotFoundHTTPError from exc
-    
-#     return {"status": "OK"}
-
-
-# @router.delete("/{template_id}", summary="Удалить шаблон")
-# async def delete_template(
-#     db: DBDep,
-#     template_id: int = Path()
-# ):
-#     try:
-#         await TemplateCategoryService(db).delete_template(template_id=template_id)
-#     except TemplateNotFoundError as exc:
-#         raise TemplateNotFoundHTTPError from exc
-    
-#     return {"status": "OK"}
-
-
+@router.delete("/{category_id}", summary="Удалить категорию шаблона | ONLY ADMIN")
+async def delete_category(
+    db: DBDep,
+    _: AdminDep,
+    category_id: int = Path(),
+):
+    try:
+        await TemplateCategoryService(db).delete_category(category_id=category_id)
+    except TemplateCategoryNotFoundError as exc:
+        raise TemplateCategoryNotFoundHTTPError from exc
+   
+    return {"status": "OK"}

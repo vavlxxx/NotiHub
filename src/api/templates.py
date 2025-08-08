@@ -5,7 +5,7 @@ from fastapi import APIRouter, Body
 from src.api.examples.templates import EXAMPLE_TEMPLATES
 from src.dependencies.db import DBDep
 from src.dependencies.templates import PaginationDep, TemplateFiltrationDep
-from src.schemas.templates import TemplateAddDTO
+from src.schemas.templates import TemplateAddDTO, TemplateUpdateDTO
 from src.services.templates import TemplateService
 from src.utils.exceptions import (
     TemplateNotFoundError, 
@@ -73,7 +73,7 @@ async def add_template(
 @router.patch("/{template_id}", summary="Обновить шаблон")
 async def update_template(
     db: DBDep,
-    data: TemplateAddDTO,
+    data: TemplateUpdateDTO,
     template_id: int = Path()
 ):  
     try:

@@ -26,3 +26,14 @@ class TemplateRepository(BaseRepository):
 class TemplateCategoryRepository(BaseRepository):
     model = TemplateCategory
     schema = TemplateCategoryDTO
+
+    async def get_all_filtered_with_params(self, limit: int, offset: int, **filter_by):
+        query = (
+            select(self.model)
+            .filter_by(**filter_by)
+            .limit(limit)
+            .offset(offset) 
+        )
+        result = await self.session.execute(query)
+        return [self.schema.model_validate(obj) for obj in result.scalars().all()]
+    

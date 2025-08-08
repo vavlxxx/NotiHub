@@ -59,7 +59,11 @@ class UserService(BaseService):
         if not self._verify_password(user_data.password, user.password_hash):
             raise LoginDataError
 
-        access_token = self.create_access_token({"user_id": user.id})
+        token_data = {"user_id": user.id}
+        if user_data.username == settings.DB_ADMIN_LOGIN:
+            token_data["is_admin"] = True
+
+        access_token = self.create_access_token(token_data)
         response.set_cookie(key="access_token", value=access_token)
         return access_token
 
@@ -73,13 +77,6 @@ class UserService(BaseService):
         except ObjectNotFoundError as exc:
             raise UserNotFoundError from exc
         return user
-
-    async def get_one_or_add(self, user_data: UserRegisterRequestDTO, **params):
-        password_hash = self._hash_password(user_data.password)
-        data = user_data.model_dump(exclude={"password"})
-        new_user_data = UserRegisterDTO(**data, password_hash=password_hash)
-        await self.db.users.get_one_or_add(new_user_data, **params)
-        await self.db.commit()
 
     @staticmethod
     def create_access_token(data: dict):

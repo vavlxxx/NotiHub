@@ -22,16 +22,22 @@ class ObjectExistsError(NotiHubBaseError):
 class UserExistsError(ObjectExistsError):
     pass
 
+class TemplateCategoryExistsError(ObjectExistsError):
+    pass
+
 class InvalidDBDataError(NotiHubBaseError):
     pass
 
 class LoginDataError(NotiHubBaseError):
     pass
 
+class OnlyForAdminsError(NotiHubBaseError):
+    pass
+
 #########################################
 
 class NotiHubBaseHTTPError(HTTPException):
-    status_code = 400
+    status_code = 500
     detail = "Неизвестная ошибка"
 
     def __init__(self, *args, **kwargs):
@@ -62,7 +68,17 @@ class LoginDataHTTPError(NotiHubBaseHTTPError):
     status_code=401
     detail="Неверные логин или пароль"
 
-class UserExistsHTTPError(NotiHubBaseHTTPError):
+class ObjectExistsHTTPError(NotiHubBaseHTTPError):
     status_code=409
+    detail="Объект уже существует"
+
+class UserExistsHTTPError(NotiHubBaseHTTPError):
     detail="Пользователь с таким логином уже существует"
+
+class TemplateCategoryExistsHTTPError(ObjectExistsHTTPError):
+    detail="Категория для шаблона уже существует"
+
+class OnlyForAdminsHTTPError(NotiHubBaseHTTPError):
+    status_code=403
+    detail="Доступно только администраторам"
     
