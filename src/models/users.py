@@ -6,8 +6,8 @@ from src.schemas.users import ContactChannelType
 
 
 class User(Base):
-    first_name: Mapped[str]
-    last_name: Mapped[str]
+    first_name: Mapped[str | None]
+    last_name: Mapped[str | None]
     username: Mapped[str] = mapped_column(unique=True)
     password_hash: Mapped[str]
     notification_enabled: Mapped[bool] = mapped_column(default=True)

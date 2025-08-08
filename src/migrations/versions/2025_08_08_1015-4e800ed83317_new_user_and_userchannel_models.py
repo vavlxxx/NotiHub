@@ -1,8 +1,8 @@
 """new: User and UserChannel models
 
-Revision ID: 1dc30970e1df
+Revision ID: 4e800ed83317
 Revises: 4e0e14a100d3
-Create Date: 2025-08-08 09:00:56.441612
+Create Date: 2025-08-08 10:15:40.440869
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "1dc30970e1df"
+revision: str = "4e800ed83317"
 down_revision: Union[str, Sequence[str], None] = "4e0e14a100d3"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -23,8 +23,8 @@ def upgrade() -> None:
     """Upgrade schema."""
     op.create_table(
         "users",
-        sa.Column("first_name", sa.String(), nullable=False),
-        sa.Column("last_name", sa.String(), nullable=False),
+        sa.Column("first_name", sa.String(), nullable=True),
+        sa.Column("last_name", sa.String(), nullable=True),
         sa.Column("username", sa.String(), nullable=False),
         sa.Column("password_hash", sa.String(), nullable=False),
         sa.Column("notification_enabled", sa.Boolean(), nullable=False),
