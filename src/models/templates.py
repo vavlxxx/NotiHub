@@ -4,7 +4,7 @@ from sqlalchemy import DateTime, ForeignKey, func
 from src.models.base import Base
 
 
-class TemplateCategory(Base):
+class Category(Base):
     title: Mapped[str] = mapped_column(unique=True)
     description: Mapped[str | None]
     parent_id: Mapped[int | None] = mapped_column(ForeignKey("template_categories.id"))
@@ -22,5 +22,5 @@ class Template(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default= func.now(), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default= func.now(), onupdate=func.now())
     
-    category: Mapped["TemplateCategory"] = relationship(back_populates="templates")
+    category: Mapped["Category"] = relationship(back_populates="templates")
     __tablename__ = "templates"

@@ -17,7 +17,7 @@ from src.utils.exceptions import (
 from src.schemas.users import UserRegisterRequestDTO, UserLoginRequestDTO, UserUpdateDTO
 
 
-router = APIRouter(prefix="/auth", tags=["Авторизация и Аутентификация"])
+router = APIRouter(prefix="/auth", tags=["Работа с пользователями"])
 
 
 @router.post("/register", summary="Зарегистрироваться")

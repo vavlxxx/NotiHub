@@ -1,11 +1,8 @@
 from sqlalchemy import text
-from src.repos.templates import (
-    TemplateRepository,
-    TemplateCategoryRepository
-)
-from src.repos.users import (
-    UserRepository
-)
+from src.repos.templates import TemplateRepository
+from src.repos.categories import CategoryRepository
+from src.repos.users import UserRepository
+from src.repos.channels import ChannelRepository
 
 
 class DB_Manager:
@@ -16,8 +13,9 @@ class DB_Manager:
     async def __aenter__(self):
         self.session = self.session_factory()
         self.templates = TemplateRepository(self.session)
-        self.template_categories = TemplateCategoryRepository(self.session)
+        self.categories = CategoryRepository(self.session)
         self.users = UserRepository(self.session)
+        self.channels = ChannelRepository(self.session)
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):

@@ -1,23 +1,25 @@
 from pathlib import Path
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Depends
 
 from src.api.examples.templates import EXAMPLE_TEMPLATES
 from src.dependencies.db import DBDep
+from src.dependencies.users import UserMetaDep, auth_required
 from src.dependencies.templates import PaginationDep, TemplateFiltrationDep
 from src.schemas.templates import TemplateAddDTO, TemplateUpdateDTO
 from src.services.templates import TemplateService
+
 from src.utils.exceptions import (
     TemplateNotFoundError, 
     TemplateNotFoundHTTPError, 
-    TemplateCategoryNotFoundError, 
-    TemplateCategoryNotFoundHTTPError
+    CategoryNotFoundError, 
+    CategoryNotFoundHTTPError
 )
 
 
 router = APIRouter(
     prefix="/templates",
-    tags=["Шаблоны для уведомлений"]
+    tags=["Управление шаблонами для уведомлений"]
 )
 
 
@@ -55,40 +57,43 @@ async def get_template(
     }
 
 
-@router.post("/", summary="Добавить шаблон")
+@router.post("/", summary="Добавить шаблон", dependencies=[Depends(auth_required)])
 async def add_template(
     db: DBDep,
+    user_meta: UserMetaDep,
     data: TemplateAddDTO = Body(description="Данные о шаблоне", openapi_examples=EXAMPLE_TEMPLATES),
 ):  
     try:
         template = await TemplateService(db).add_template(data=data)
-    except TemplateCategoryNotFoundError as exc:
-        raise TemplateCategoryNotFoundHTTPError from exc
+    except CategoryNotFoundError as exc:
+        raise CategoryNotFoundHTTPError from exc
     
     return {
         "data": template
     }
 
 
-@router.patch("/{template_id}", summary="Обновить шаблон")
+@router.patch("/{template_id}", summary="Обновить шаблон", dependencies=[Depends(auth_required)])
 async def update_template(
     db: DBDep,
     data: TemplateUpdateDTO,
+    user_meta: UserMetaDep,
     template_id: int = Path()
 ):  
     try:
         await TemplateService(db).update_template(template_id=template_id, data=data)
     except TemplateNotFoundError as exc:
         raise TemplateNotFoundHTTPError from exc
-    except TemplateCategoryNotFoundError as exc:
-        raise TemplateCategoryNotFoundHTTPError from exc
+    except CategoryNotFoundError as exc:
+        raise CategoryNotFoundHTTPError from exc
     
     return {"status": "OK"}
 
 
-@router.delete("/{template_id}", summary="Удалить шаблон")
+@router.delete("/{template_id}", summary="Удалить шаблон", dependencies=[Depends(auth_required)])
 async def delete_template(
     db: DBDep,
+    user_meta: UserMetaDep,
     template_id: int = Path()
 ):
     try:

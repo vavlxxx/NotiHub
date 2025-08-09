@@ -1,4 +1,4 @@
-"""new: Template and TemplateCategory
+"""new: Template and Category
 
 Revision ID: 99b29d44e46a
 Revises:

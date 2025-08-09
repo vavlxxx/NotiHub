@@ -13,7 +13,10 @@ class UserNotFoundError(ObjectNotFoundError):
 class TemplateNotFoundError(ObjectNotFoundError):
     pass
 
-class TemplateCategoryNotFoundError(ObjectNotFoundError):
+class CategoryNotFoundError(ObjectNotFoundError):
+    pass
+
+class ChannelNotFoundError(ObjectNotFoundError):
     pass
 
 class ObjectExistsError(NotiHubBaseError):
@@ -22,7 +25,10 @@ class ObjectExistsError(NotiHubBaseError):
 class UserExistsError(ObjectExistsError):
     pass
 
-class TemplateCategoryExistsError(ObjectExistsError):
+class CategoryExistsError(ObjectExistsError):
+    pass
+
+class ChannelExistsError(ObjectExistsError):
     pass
 
 class InvalidDBDataError(NotiHubBaseError):
@@ -47,11 +53,14 @@ class ObjectNotFoundHTTPError(NotiHubBaseHTTPError):
 class TemplateNotFoundHTTPError(ObjectNotFoundHTTPError):
     detail="Шаблон не найден"
 
-class TemplateCategoryNotFoundHTTPError(ObjectNotFoundHTTPError):
+class CategoryNotFoundHTTPError(ObjectNotFoundHTTPError):
     detail="Категория для шаблона не найдена"
 
 class UserNotFoundHTTPError(ObjectNotFoundHTTPError):
     detail="Пользователь не найден"
+
+class ChannelNotFoundHTTPError(ObjectNotFoundHTTPError):
+    detail="Контактный канал не найден"
 
 class TemplateSyntaxHTTPError(NotiHubBaseHTTPError):
     status_code=422
@@ -73,7 +82,10 @@ class UserExistsHTTPError(NotiHubBaseHTTPError):
     status_code=409
     detail="Пользователь с таким логином уже существует"
 
-class TemplateCategoryExistsHTTPError(ObjectExistsHTTPError):
+class ChannelExistsHTTPError(ObjectExistsHTTPError):
+    detail="Такой контактный канал уже существует"
+
+class CategoryExistsHTTPError(ObjectExistsHTTPError):
     detail="Категория для шаблона уже существует"
 
 class OnlyStaffHTTPError(NotiHubBaseHTTPError):

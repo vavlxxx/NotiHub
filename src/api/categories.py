@@ -5,19 +5,19 @@ from fastapi import APIRouter, Body, Depends
 from src.dependencies.db import DBDep
 from src.dependencies.templates import PaginationDep
 from src.dependencies.users import only_staff
-from src.schemas.templates import TemplateCategoryAddDTO, TemplateCategoryUpdateDTO
-from src.services.templates import TemplateCategoryService
+from src.schemas.categories import CategoryAddDTO, CategoryUpdateDTO
+from src.services.categories import CategoryService
 from src.utils.exceptions import (
-    TemplateCategoryExistsError,
-    TemplateCategoryExistsHTTPError,
-    TemplateCategoryNotFoundError, 
-    TemplateCategoryNotFoundHTTPError
+    CategoryExistsError,
+    CategoryExistsHTTPError,
+    CategoryNotFoundError, 
+    CategoryNotFoundHTTPError
 )
 
 
 router = APIRouter(
     prefix="/categories",
-    tags=["Категории шаблонов для уведомлений"]
+    tags=["Категории шаблонов уведомлений"]
 )
 
 
@@ -26,7 +26,7 @@ async def get_categories_list(
     db: DBDep,
     pagination: PaginationDep,
 ):  
-    categories = await TemplateCategoryService(db).get_categories_list(
+    categories = await CategoryService(db).get_categories_list(
         limit=pagination.limit,
         offset=pagination.offset
     )
@@ -44,14 +44,14 @@ async def get_categories_list(
         dependencies=[Depends(only_staff)])
 async def add_category(
     db: DBDep,
-    data: TemplateCategoryAddDTO = Body(description="Данные о категории"),
+    data: CategoryAddDTO = Body(description="Данные о категории"),
 ):  
     try:
-        category = await TemplateCategoryService(db).add_category(data=data)
-    except TemplateCategoryNotFoundError as exc:
-        raise TemplateCategoryNotFoundHTTPError from exc
-    except TemplateCategoryExistsError as exc:
-        raise TemplateCategoryExistsHTTPError from exc
+        category = await CategoryService(db).add_category(data=data)
+    except CategoryNotFoundError as exc:
+        raise CategoryNotFoundHTTPError from exc
+    except CategoryExistsError as exc:
+        raise CategoryExistsHTTPError from exc
     
     return {
         "data": category
@@ -64,15 +64,15 @@ async def add_category(
         dependencies=[Depends(only_staff)])
 async def update_category(
     db: DBDep,
-    data: TemplateCategoryUpdateDTO = Body(description="Данные о категории"),
+    data: CategoryUpdateDTO = Body(description="Данные о категории"),
     category_id: int = Path(),
 ):  
     try:
-        await TemplateCategoryService(db).update_category(category_id=category_id, data=data)
-    except TemplateCategoryNotFoundError as exc:
-        raise TemplateCategoryNotFoundHTTPError from exc
-    except TemplateCategoryExistsError as exc:
-        raise TemplateCategoryExistsHTTPError from exc
+        await CategoryService(db).update_category(category_id=category_id, data=data)
+    except CategoryNotFoundError as exc:
+        raise CategoryNotFoundHTTPError from exc
+    except CategoryExistsError as exc:
+        raise CategoryExistsHTTPError from exc
     
     return {"status": "OK"}
 
@@ -86,8 +86,8 @@ async def delete_category(
     category_id: int = Path(),
 ):
     try:
-        await TemplateCategoryService(db).delete_category(category_id=category_id)
-    except TemplateCategoryNotFoundError as exc:
-        raise TemplateCategoryNotFoundHTTPError from exc
+        await CategoryService(db).delete_category(category_id=category_id)
+    except CategoryNotFoundError as exc:
+        raise CategoryNotFoundHTTPError from exc
    
     return {"status": "OK"}

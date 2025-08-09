@@ -19,9 +19,10 @@ from src.schemas.users import UserRegisterRequestDTO
 from src.services.users import UserService
 
 from src.api.templates import router as router_templates
-from src.api.template_categories import router as router_template_categories
+from api.categories import router as router_categories
 from src.api.docs import router as router_docs
 from src.api.users import router as router_users
+from src.api.channels import router as router_channels
 
 logging.basicConfig(
     level=logging.INFO,
@@ -59,8 +60,9 @@ app = FastAPI(
 )
 app.include_router(router=router_docs)
 app.include_router(router=router_templates)
-app.include_router(router=router_template_categories)
+app.include_router(router=router_categories)
 app.include_router(router=router_users)
+app.include_router(router=router_channels)
 
 
 if __name__ == "__main__":

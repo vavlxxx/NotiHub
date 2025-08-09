@@ -1,12 +1,8 @@
 from typing import Annotated
 
 from fastapi import Depends, Query
-from jinja2.exceptions import TemplateSyntaxError
 
-from src.schemas.templates import TemplateAddDTO, TemplateUpdateDTO
 from src.schemas.base import BaseDTO
-from src.settings import environment
-from src.utils.exceptions import TemplateSyntaxHTTPError
 
 
 class PaginationParamsDTO(BaseDTO):

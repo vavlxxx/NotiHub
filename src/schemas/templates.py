@@ -2,20 +2,6 @@ from datetime import datetime
 from src.schemas.base import BaseDTO
 
 
-class TemplateCategoryAddDTO(BaseDTO):
-    title: str
-    description: str | None = None
-    parent_id: int | None = None
-
-class TemplateCategoryDTO(TemplateCategoryAddDTO):
-    id: int
-
-class TemplateCategoryUpdateDTO(TemplateCategoryAddDTO):
-    title: str | None = None
-    description: str | None = None
-    parent_id: int | None = None
-
-
 class TemplateAddDTO(BaseDTO):
     title: str
     content: str

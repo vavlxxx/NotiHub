@@ -1,6 +1,6 @@
 from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.dialects.postgresql import ENUM
-from sqlalchemy.orm import mapped_column, Mapped, relationship
+from sqlalchemy.orm import mapped_column, Mapped
 
 from src.models.base import Base
 from src.utils.enums import ContactChannelType, UserRole
@@ -17,9 +17,6 @@ class User(Base):
     username: Mapped[str] = mapped_column(unique=True)
     password_hash: Mapped[str]
     notification_enabled: Mapped[bool] = mapped_column(default=True)
-    contact_channels: Mapped[list["UserContactChannel"]] = relationship(
-        back_populates="user"
-    )
 
     __tablename__ = "users"
 
@@ -28,9 +25,6 @@ class UserContactChannel(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     contact_value: Mapped[str]
     is_active: Mapped[bool] = mapped_column(default=True)
-    user: Mapped["User"] = relationship(
-        back_populates="contact_channels",
-    )
     channel_type: Mapped[ContactChannelType] = mapped_column(
         ENUM(ContactChannelType), 
         nullable=False

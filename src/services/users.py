@@ -12,6 +12,7 @@ from src.schemas.users import (
     UserRegisterDTO,
     UserRegisterRequestDTO,
     UserUpdateDTO,
+    UserWithChannelsDTO,
 )
 from src.utils.enums import UserRole
 from src.utils.exceptions import (
@@ -82,15 +83,15 @@ class UserService(BaseService):
         return access_token
 
 
-    async def get_user(self, *filter, exclude_channels: bool = False, **filter_by):
+    async def get_user(self, *filter, include_channels: bool = True, **filter_by):
         try:
-            if exclude_channels:
-                user = await self.db.users.get_one(*filter, **filter_by)
-                return user
-            
-            user = await self.db.users.get_one_with_channels(*filter, **filter_by)
+            user = await self.db.users.get_one(*filter, **filter_by)
         except ObjectNotFoundError as exc:
             raise UserNotFoundError from exc
+
+        if include_channels:
+            channels = await self.db.channels.get_all_filtered(user_id=user.id, is_active=True) 
+            user = UserWithChannelsDTO(**user.model_dump(), contact_channels=channels)
         return user
 
 
@@ -119,4 +120,4 @@ class UserService(BaseService):
             raise HTTPException(status_code=401, detail="Неверный токен")
         except jwt.exceptions.ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Срок действия токена истёк. Пожалуйста пройдите аутентификацию заново")
-    
+

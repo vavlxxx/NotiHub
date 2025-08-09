@@ -1,11 +1,10 @@
 from sqlalchemy import select
-from sqlalchemy.exc import DBAPIError, NoResultFound
-from sqlalchemy.orm import joinedload
+from sqlalchemy.exc import NoResultFound
 
 from src.repos.base import BaseRepository
 from src.models.users import User
-from src.schemas.users import UserDTO, UserPasswdDTO, UserWithChannelsDTO
-from src.utils.exceptions import InvalidDBDataError, ObjectNotFoundError
+from src.schemas.users import UserDTO, UserPasswdDTO
+from src.utils.exceptions import ObjectNotFoundError
 
 
 class UserRepository(BaseRepository):
@@ -20,24 +19,4 @@ class UserRepository(BaseRepository):
         except NoResultFound:
             raise ObjectNotFoundError
         return UserPasswdDTO.model_validate(obj)
-    
-    
-    async def get_one_with_channels(self, *filter, **filter_by) -> UserDTO:
-        query = (
-            select(self.model)
-            .filter(*filter)
-            .filter_by(**filter_by)
-            .options(joinedload(User.contact_channels))
-        )
-        try:
-            result = await self.session.execute(query)
-            obj = result.unique().scalar_one()
-        except NoResultFound:
-            raise ObjectNotFoundError
-        except DBAPIError as exc:
-            if isinstance(exc.orig.__cause__, DataError):  # type: ignore
-                raise InvalidDBDataError from exc
-            raise exc
-
-        return UserWithChannelsDTO.model_validate(obj)
     

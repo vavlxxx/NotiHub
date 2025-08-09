@@ -1,17 +1,8 @@
 from pydantic import Field
 
+from src.schemas.channels import UserChannelDTO
 from src.schemas.base import BaseDTO
-from src.utils.enums import ContactChannelType, UserRole
-
-
-class UserChannelAddDTO(BaseDTO):
-    user_id: int
-    contact_value: str
-    channel_type: ContactChannelType
-    
-class UserChannelDTO(UserChannelAddDTO):
-    id: int
-    is_active: bool
+from src.utils.enums import UserRole
 
 
 class _UserDTO(BaseDTO):
@@ -37,7 +28,7 @@ class UserDTO(_UserDTO):
     role: UserRole
     
 class UserWithChannelsDTO(UserDTO):
-    contact_channels: list[UserChannelDTO]
+    contact_channels: list[UserChannelDTO] | None = Field(default_factory=list)
 
 class UserPasswdDTO(UserDTO):
     password_hash: str
