@@ -20,4 +20,4 @@ class UserChannelDTO(BaseDTO):
 class UserChannelUpdateDTO(BaseDTO):
     contact_value: str | None = None
     channel_type: ContactChannelType | None = None
-    is_active: bool
+    is_active: bool | None = None

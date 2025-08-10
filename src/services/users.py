@@ -90,7 +90,7 @@ class UserService(BaseService):
             raise UserNotFoundError from exc
 
         if include_channels:
-            channels = await self.db.channels.get_all_filtered(user_id=user.id, is_active=True) 
+            channels = await self.db.channels.get_all_filtered(user_id=user.id) 
             user = UserWithChannelsDTO(**user.model_dump(), channels=channels)
         return user
 

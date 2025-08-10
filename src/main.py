@@ -43,7 +43,7 @@ async def lifespan(app: FastAPI):
                     role=UserRole.ADMIN
                 )
             )
-        except UserExistsError as exc:
+        except UserExistsError:
             ...
 
     await redis_manager.connect()

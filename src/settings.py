@@ -30,6 +30,13 @@ class Settings:
     JWT_SECRET_KEY: str
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int
 
+    SMTP_HOST: str
+    SMTP_PORT: int
+    SMTP_USER: str
+    SMTP_PASSWORD: str
+
+    TELEGRAM_BOT_TOKEN: str
+
     JINGA2_ENV: jinja2.Environment = jinja2.Environment(undefined=jinja2.StrictUndefined)
 
     def _get_env_var(env_var: str, to_cast: type) -> str:
@@ -59,6 +66,13 @@ class Settings:
             JWT_ALGORITHM=cls._get_env_var('JWT_ALGORITHM', to_cast=str),
             JWT_SECRET_KEY=cls._get_env_var('JWT_SECRET_KEY', to_cast=str),
             JWT_ACCESS_TOKEN_EXPIRE_MINUTES=cls._get_env_var('JWT_ACCESS_TOKEN_EXPIRE_MINUTES', to_cast=int),
+
+            SMTP_HOST=cls._get_env_var('SMTP_HOST', to_cast=str),
+            SMTP_PORT=cls._get_env_var('SMTP_PORT', to_cast=int),
+            SMTP_USER=cls._get_env_var('SMTP_USER', to_cast=str),
+            SMTP_PASSWORD=cls._get_env_var('SMTP_PASSWORD', to_cast=str),
+         
+            TELEGRAM_BOT_TOKEN=cls._get_env_var('TELEGRAM_BOT_TOKEN', to_cast=str),
         )
     
     @property
