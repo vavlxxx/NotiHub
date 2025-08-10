@@ -97,7 +97,8 @@ class BaseRepository:
             raise exc
 
 
-    async def delete(self, *filter, **filter_by):
-        await self.get_one(*filter, **filter_by)
+    async def delete(self, ensure_existence=True, *filter, **filter_by):
+        if ensure_existence:
+            await self.get_one(*filter, **filter_by)
         delete_obj_stmt = delete(self.model).filter(*filter).filter_by(**filter_by)
         await self.session.execute(delete_obj_stmt)

@@ -21,8 +21,7 @@ class TemplateService(BaseService):
         return await self.db.templates.get_all_filtered_with_params(
             limit=limit, 
             offset=offset,
-            category_id=category_id,
-            is_active=True
+            category_id=category_id
         )
 
 

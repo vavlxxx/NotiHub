@@ -91,7 +91,7 @@ class UserService(BaseService):
 
         if include_channels:
             channels = await self.db.channels.get_all_filtered(user_id=user.id, is_active=True) 
-            user = UserWithChannelsDTO(**user.model_dump(), contact_channels=channels)
+            user = UserWithChannelsDTO(**user.model_dump(), channels=channels)
         return user
 
 

@@ -31,13 +31,3 @@ def get_templates_filtration_params(
     return TemplateFiltrationDTO(category_id=category_id)
 
 TemplateFiltrationDep = Annotated[TemplateFiltrationDTO, Depends(get_templates_filtration_params)]
-
-
-# def check_template_validity(schema: TemplateAddDTO | TemplateUpdateDTO) -> None:
-#     try:
-#         environment.from_string(f"{schema.title}\n\n{schema.content}")
-#     except TemplateSyntaxError as exc:
-#         raise TemplateSyntaxHTTPError from exc
-#     return schema
-
-# ValidTemplateDep = Annotated[TemplateAddDTO, Depends(check_template_validity)]

@@ -30,6 +30,8 @@ class Settings:
     JWT_SECRET_KEY: str
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int
 
+    JINGA2_ENV: jinja2.Environment = jinja2.Environment(undefined=jinja2.StrictUndefined)
+
     def _get_env_var(env_var: str, to_cast: type) -> str:
         value = os.getenv(env_var)
         if value is None:
@@ -70,4 +72,3 @@ class Settings:
 
 
 settings = Settings.load_from_env()
-environment = jinja2.Environment()

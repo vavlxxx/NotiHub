@@ -11,8 +11,10 @@ class UserChannelAddDTO(UserChannelAddRequestDTO):
     contact_value: str
     channel_type: ContactChannelType
 
-class UserChannelDTO(UserChannelAddDTO):
+class UserChannelDTO(BaseDTO):
     id: int
+    contact_value: str
+    channel_type: ContactChannelType
     is_active: bool
 
 class UserChannelUpdateDTO(BaseDTO):

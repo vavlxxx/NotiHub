@@ -1,9 +1,14 @@
 from sqlalchemy import text
+
 from src.repos.templates import TemplateRepository
 from src.repos.categories import CategoryRepository
 from src.repos.users import UserRepository
-from src.repos.channels import ChannelRepository
-
+from src.repos.channels import ChannelRepository, NotificationChannelRepository
+from src.repos.notifications import (
+    NotificationRepository, 
+    NotificationLogRepository, 
+    NotificationVariableRepository
+)
 
 class DB_Manager:
     
@@ -16,6 +21,10 @@ class DB_Manager:
         self.categories = CategoryRepository(self.session)
         self.users = UserRepository(self.session)
         self.channels = ChannelRepository(self.session)
+        self.notification_channels = NotificationChannelRepository(self.session)
+        self.notifications = NotificationRepository(self.session)
+        self.notification_logs = NotificationLogRepository(self.session)
+        self.notification_variables = NotificationVariableRepository(self.session)
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):

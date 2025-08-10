@@ -1,9 +1,15 @@
+import typing
+
 from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.dialects.postgresql import ENUM
-from sqlalchemy.orm import mapped_column, Mapped
+from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 from src.models.base import Base
 from src.utils.enums import ContactChannelType, UserRole
+
+
+if typing.TYPE_CHECKING:
+    from src.models.notifications import Notification
 
 
 class User(Base):
@@ -28,6 +34,11 @@ class UserContactChannel(Base):
     channel_type: Mapped[ContactChannelType] = mapped_column(
         ENUM(ContactChannelType), 
         nullable=False
+    )
+
+    notifications: Mapped[list["Notification"]] = relationship(  # type: ignore
+        secondary="notification_channels",
+        back_populates="channels",
     )
 
     __tablename__ = "user_contact_channels"

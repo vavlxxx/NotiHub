@@ -28,7 +28,7 @@ class UserDTO(_UserDTO):
     role: UserRole
     
 class UserWithChannelsDTO(UserDTO):
-    contact_channels: list[UserChannelDTO] | None = Field(default_factory=list)
+    channels: list[UserChannelDTO] | None = Field(default_factory=list)
 
 class UserPasswdDTO(UserDTO):
     password_hash: str

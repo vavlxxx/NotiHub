@@ -23,6 +23,7 @@ from api.categories import router as router_categories
 from src.api.docs import router as router_docs
 from src.api.users import router as router_users
 from src.api.channels import router as router_channels
+from src.api.notifications import router as router_notifications
 
 logging.basicConfig(
     level=logging.INFO,
@@ -63,6 +64,7 @@ app.include_router(router=router_templates)
 app.include_router(router=router_categories)
 app.include_router(router=router_users)
 app.include_router(router=router_channels)
+app.include_router(router=router_notifications)
 
 
 if __name__ == "__main__":
