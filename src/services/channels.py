@@ -3,6 +3,7 @@ from src.services.base import BaseService
 
 
 from src.utils.exceptions import (
+    ChannelInUseError,
     ObjectExistsError,
     ObjectNotFoundError,
     ChannelExistsError,
@@ -23,6 +24,13 @@ class ChannelService(BaseService):
         return channel
     
     async def update_channel(self, data: UserChannelUpdateDTO, channel_id: int, user_meta: dict) -> UserChannelDTO:
+        schedules = await self.db.schedules.get_all_filtered(channel_id=channel_id)
+        if schedules:
+            raise ChannelInUseError(
+                detail="Данный канал используется в запланированных уведомлениях с id: " + 
+                ', '.join(map(str, [schedule.id for schedule in schedules]))
+            )
+
         try:
             channel = await self.db.channels.edit(data=data, id=channel_id, user_id=user_meta.get("user_id"))
         except ObjectExistsError as exc:
@@ -34,6 +42,13 @@ class ChannelService(BaseService):
         return channel
 
     async def delete_channel(self, channel_id: int, user_meta: dict) -> None:
+        schedules = await self.db.schedules.get_all_filtered(channel_id=channel_id)
+        if schedules:
+            raise ChannelInUseError(
+                detail="Данный канал используется в запланированных уведомлениях с id: " + 
+                ', '.join(map(str, [schedule.id for schedule in schedules]))
+            )
+        
         try:
             await self.db.channels.delete(id=channel_id, user_id=user_meta.get("user_id"))
         except ObjectNotFoundError as exc:

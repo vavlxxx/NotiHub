@@ -54,6 +54,9 @@ class TemplateSyntaxCheckError(NotiHubBaseError):
 class MissingTemplateVariablesError(NotiHubBaseError):
     pass
 
+class ChannelInUseError(NotiHubBaseError):
+    pass
+
 #########################################
 
 class NotiHubBaseHTTPError(HTTPException):

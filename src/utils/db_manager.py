@@ -4,9 +4,8 @@ from src.repos.templates import TemplateRepository
 from src.repos.categories import CategoryRepository
 from src.repos.users import UserRepository
 from src.repos.channels import ChannelRepository
-from src.repos.notifications import (
-    NotificationLogRepository
-)
+from src.repos.notifications import NotificationLogRepository
+from src.repos.scheudles import ScheduleRepository
 
 class DB_Manager:
     
@@ -20,6 +19,7 @@ class DB_Manager:
         self.users = UserRepository(self.session)
         self.channels = ChannelRepository(self.session)
         self.notification_logs = NotificationLogRepository(self.session)
+        self.schedules = ScheduleRepository(self.session)
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):

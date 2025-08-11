@@ -8,7 +8,6 @@ from src.utils.enums import UserRole
 class _UserDTO(BaseDTO):
     first_name: str | None = None
     last_name: str | None  = None
-    notification_enabled: bool = True
 
 class UserLoginRequestDTO(BaseDTO):
     username: str

@@ -120,4 +120,3 @@ class UserService(BaseService):
             raise HTTPException(status_code=401, detail="Неверный токен")
         except jwt.exceptions.ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Срок действия токена истёк. Пожалуйста пройдите аутентификацию заново")
-

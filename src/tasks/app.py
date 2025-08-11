@@ -7,13 +7,13 @@ celery_app = Celery(
     "tasks",
     broker=settings.redis_url,
     include=[
-        "src.tasks.tasks",
+        "src.tasks.tasks"
     ],
 )
 
-# celery_app.conf.beat_schedule = {
-#     "...": {
-#         "task": "...",
-#         "schedule": crontab(),
-#     }
-# }
+celery_app.conf.beat_schedule = {
+    "check_notification_schedule": {
+        "task": "check_notification_schedule",
+        "schedule": 60.0,
+    }
+}

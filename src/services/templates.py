@@ -1,10 +1,13 @@
+from jinja2 import TemplateSyntaxError
+import settings
 from src.services.base import BaseService
-from src.schemas.templates import TemplateAddDTO, TemplateDTO
+from src.schemas.templates import TemplateAddDTO, TemplateDTO, TemplateUpdateDTO
 from src.schemas.categories import CategoryAddDTO
 from src.utils.exceptions import (
     ObjectNotFoundError,
     TemplateNotFoundError, 
-    CategoryNotFoundError
+    CategoryNotFoundError,
+    TemplateSyntaxCheckError
 )
 
 
@@ -24,15 +27,24 @@ class TemplateService(BaseService):
             category_id=category_id
         )
 
+    
+    async def _validate_template(self, template: TemplateAddDTO | TemplateUpdateDTO) -> None:
+        try:
+            settings.JINGA2_ENV.from_string(template.content)
+        except TemplateSyntaxError as exc:
+            raise TemplateSyntaxCheckError from exc
+
 
     async def add_template(self, data: TemplateAddDTO) -> dict:
+        await self._validate_template(data)
         if not hasattr(data, 'category_id') or data.category_id is None:
-            category_data = CategoryAddDTO(
-                title='Без категории', 
-                description='Категория по умолчанию',
-                parent_id=None
+            default_category = await self.db.categories.get_one_or_add(
+                CategoryAddDTO(
+                    title='Без категории', 
+                    description='Категория по умолчанию',
+                    parent_id=None
+                )
             )
-            default_category = await self.db.categories.get_one_or_add(category_data)
             data.category_id = default_category.id
         else:
             try:
@@ -45,7 +57,11 @@ class TemplateService(BaseService):
         return template
 
 
-    async def update_template(self, data: TemplateAddDTO, template_id: int) -> TemplateAddDTO:
+    async def update_template(self, data: TemplateUpdateDTO, template_id: int):
+
+        if data.content is not None:
+            await self._validate_template(data)
+
         if data.category_id is not None:
             try:
                 await self.db.categories.get_one(id=data.category_id)

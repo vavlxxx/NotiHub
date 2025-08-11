@@ -1,7 +1,8 @@
 from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.dialects.postgresql import ENUM
-from sqlalchemy.orm import mapped_column, Mapped
+from sqlalchemy.orm import mapped_column, Mapped, relationship
 
+from src.models.notifications import NotificationSchedule
 from src.models.base import Base
 from src.utils.enums import ContactChannelType, UserRole
 
@@ -16,7 +17,6 @@ class User(Base):
     )
     username: Mapped[str] = mapped_column(unique=True)
     password_hash: Mapped[str]
-    notification_enabled: Mapped[bool] = mapped_column(default=True)
 
     __tablename__ = "users"
 
@@ -25,9 +25,14 @@ class UserContactChannel(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     contact_value: Mapped[str]
     is_active: Mapped[bool] = mapped_column(default=True)
+    
     channel_type: Mapped[ContactChannelType] = mapped_column(
         ENUM(ContactChannelType), 
         nullable=False
+    )
+    schedules: Mapped[list["NotificationSchedule"]] = relationship(
+        "NotificationSchedule",
+        back_populates="channel"
     )
 
     __tablename__ = "user_contact_channels"
