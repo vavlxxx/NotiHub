@@ -66,6 +66,7 @@ class NotificationSendDTO(_NotificationSchedule):
 class NotificationScheduleAddDTO(_NotificationSchedule):
     message: str
     channel_id: int
+    scheduled_at: datetime | None = None
     next_execution_at: datetime | None = None
     
 

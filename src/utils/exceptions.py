@@ -123,3 +123,7 @@ class MissingTemplateVariablesHTTPError(NotiHubBaseHTTPError):
 class OnlyStaffHTTPError(NotiHubBaseHTTPError):
     status_code=403
     detail="Доступно только администраторам"
+
+class ChannelInUseHTTPError(NotiHubBaseHTTPError):
+    status_code=409
+    

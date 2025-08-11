@@ -135,7 +135,10 @@ async def _update_schedule_after_execution(db: DB_Manager, schedule: ScheduleWit
         if schedule.max_executions and new_executions_count >= schedule.max_executions:
             await db.schedules.delete(ensure_existence=False, id=schedule.id)
             return
-    
+    elif schedule.schedule_type == ScheduleType.ONCE and new_executions_count >= 1:
+        await db.schedules.delete(ensure_existence=False, id=schedule.id)
+        return
+
     obj = NotificationScheduleUpdateDTO(
         current_executions=new_executions_count,
         last_executed_at=datetime.now(timezone.utc),

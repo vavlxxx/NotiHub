@@ -8,7 +8,9 @@ from src.services.channels import ChannelService
 
 from src.utils.exceptions import (
     ChannelExistsError, 
-    ChannelExistsHTTPError, 
+    ChannelExistsHTTPError,
+    ChannelInUseError,
+    ChannelInUseHTTPError, 
     ChannelNotFoundError,
     ChannelNotFoundHTTPError
 )
@@ -64,6 +66,8 @@ async def delete_channel(
         await ChannelService(db).delete_channel(channel_id=channel_id, user_meta=user_meta)
     except ChannelNotFoundError as exc:
         raise ChannelNotFoundHTTPError from exc
+    except ChannelInUseError as exc:
+        raise ChannelInUseHTTPError(detail=exc.detail) from exc
     return {
         "status": "OK"
     }
