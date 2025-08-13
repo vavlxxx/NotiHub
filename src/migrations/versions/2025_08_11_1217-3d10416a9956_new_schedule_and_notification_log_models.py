@@ -39,7 +39,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "status",
-            postgresql.ENUM("SUCCESS", "FAILURE", "PENDING", name="notificationstatus"),
+            postgresql.ENUM("SUCCESS", "FAILURE", name="notificationstatus"),
             nullable=False,
         ),
         sa.Column(

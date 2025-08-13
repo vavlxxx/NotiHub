@@ -1,13 +1,13 @@
 from sqlalchemy import select
 
 from src.repos.base import BaseRepository
-from src.schemas.channels import UserChannelDTO
+from src.schemas.channels import ChannelDTO
 from src.models.users import UserContactChannel
 
 
 class ChannelRepository(BaseRepository):
     model = UserContactChannel
-    schema = UserChannelDTO
+    schema = ChannelDTO
 
     async def get_all_filtered_by_ids(self, ids_list: list, **filter_by):
         query = (

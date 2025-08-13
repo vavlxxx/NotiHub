@@ -11,9 +11,7 @@ from sqlalchemy import pool
 from alembic import context
 
 from src.models.base import Base
-from src.models.users import User
-from src.models.templates import Template
-from src.models.notifications import NotificationLog
+from src.models import *  # noqa: F403
 
 from src.settings import settings
 

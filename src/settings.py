@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 from typing_extensions import Self
 from dataclasses import dataclass
@@ -10,7 +11,6 @@ load_dotenv(find_dotenv())
 
 @dataclass(frozen=True, repr=False, eq=False, slots=True)
 class Settings:
-
     DB_USER: str
     DB_PASS: str
     DB_HOST: str
@@ -37,9 +37,12 @@ class Settings:
 
     TELEGRAM_BOT_TOKEN: str
 
+    APP_NAME: str = "🔔 NotiHub"
+
     JINGA2_ENV: jinja2.Environment = jinja2.Environment(undefined=jinja2.StrictUndefined)
 
-    def _get_env_var(env_var: str, to_cast: type) -> str:
+    @staticmethod
+    def _get_env_var(env_var: str, to_cast: type) -> Any:
         value = os.getenv(env_var)
         if value is None:
             raise ValueError(f'Env variable {env_var} is not set')

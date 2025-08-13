@@ -29,9 +29,6 @@ class NotificationLog(Base):
     delivered_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now(), server_default=func.now()
     )
-    processing_time_ms: Mapped[int | None] = mapped_column(
-        Integer, nullable=True, comment="Время обработки в миллисекундах"
-    )
 
     __tablename__ = "notification_logs"
 
@@ -57,14 +54,16 @@ class NotificationSchedule(Base):
         nullable=True,
         comment="Cron выражение: минута час день месяц день_недели"
     )
-    max_executions: Mapped[int | None] = mapped_column(
+    max_executions: Mapped[int] = mapped_column(
         Integer,
-        nullable=True,
-        comment="Максимальное количество выполнений (для recurring)"
+        default=0,
+        nullable=False,
+        comment="Максимальное количество выполнений"
     )
     current_executions: Mapped[int] = mapped_column(
         Integer,
         default=0,
+        nullable=False,
         comment="Текущее количество выполнений"
     )
     last_executed_at: Mapped[datetime | None] = mapped_column(
@@ -95,11 +94,15 @@ class NotificationSchedule(Base):
     
     __table_args__ = (
         CheckConstraint(
-            f"(schedule_type = 'ONCE' AND scheduled_at IS NOT NULL) OR schedule_type != 'ONCE'",
+            "(max_executions >= 0) AND (current_executions <= max_executions) AND (current_executions >= 0)",
+            name='valid_execution_count'
+        ),
+        CheckConstraint(
+            "(schedule_type = 'ONCE' AND scheduled_at IS NOT NULL) OR schedule_type != 'ONCE'",
             name='once_requires_scheduled_at'
         ),
         CheckConstraint(
-            f"(schedule_type = 'RECURRING' AND crontab IS NOT NULL) OR schedule_type != 'RECURRING'",
+            "(schedule_type = 'RECURRING' AND crontab IS NOT NULL) OR schedule_type != 'RECURRING'",
             name='recurring_requires_cron'
         )
     )

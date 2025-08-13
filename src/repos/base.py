@@ -81,8 +81,10 @@ class BaseRepository:
         return self.schema.model_validate(obj)
 
 
-    async def edit(self, data: BaseDTO, exclude_unset=True, exclude_fields=None, *filter, **filter_by):
-        await self.get_one(*filter, **filter_by)
+    async def edit(self, data: BaseDTO, exclude_unset=True, exclude_fields=None, ensure_existence=True, *filter, **filter_by):
+        if ensure_existence:
+            await self.get_one(*filter, **filter_by)
+            
         exclude_fields = exclude_fields or set()
         to_update = data.model_dump(exclude=exclude_fields, exclude_unset=exclude_unset)
         if not to_update:

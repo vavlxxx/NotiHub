@@ -34,4 +34,4 @@ def get_user_meta_from_request(access_token: str = Depends(get_access_token)):
     }
     return user_meta
 
-UserMetaDep = Annotated[int, Depends(get_user_meta_from_request)]
+UserMetaDep = Annotated[dict, Depends(get_user_meta_from_request)]

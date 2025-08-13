@@ -1,8 +1,9 @@
+from schemas.templates import TemplateDTO
 from src.services.base import BaseService
-from src.schemas.templates import TemplateAddDTO
-from src.schemas.categories import CategoryAddDTO, CategoryDTO
+from src.schemas.categories import AddCategoryDTO, CategoryDTO
 
 from src.utils.exceptions import (
+    CategoryInUseError,
     ObjectExistsError,
     ObjectNotFoundError,
     CategoryExistsError,
@@ -11,15 +12,15 @@ from src.utils.exceptions import (
 
 
 class CategoryService(BaseService):
-    
     async def get_categories_list(self, limit: int, offset: int) -> list[CategoryDTO]:
-        return await self.db.categories.get_all_filtered_with_params(
+        categories: list[CategoryDTO] = await self.db.categories.get_all_filtered_with_params(
             limit=limit, 
             offset=offset
         )
+        return categories
     
 
-    async def add_category(self, data: CategoryAddDTO) -> CategoryDTO:
+    async def add_category(self, data: AddCategoryDTO) -> CategoryDTO:
         if hasattr(data, 'parent_id') and data.parent_id is not None:
             try:
                 await self.db.categories.get_one(id=data.parent_id)
@@ -27,15 +28,14 @@ class CategoryService(BaseService):
                 raise CategoryNotFoundError from exc
 
         try:
-            category = await self.db.categories.add(data)
+            category: CategoryDTO = await self.db.categories.add(data)
         except ObjectExistsError as exc:
             raise CategoryExistsError from exc
-        
         await self.db.commit()
         return category
     
 
-    async def update_category(self, data: TemplateAddDTO, category_id: int) -> TemplateAddDTO:
+    async def update_category(self, data: AddCategoryDTO, category_id: int) -> None:
         if hasattr(data, 'parent_id') and data.parent_id is not None:
             try:
                 await self.db.categories.get_one(id=data.parent_id)
@@ -48,11 +48,17 @@ class CategoryService(BaseService):
             raise CategoryNotFoundError from exc
         except ObjectExistsError as exc:
             raise CategoryExistsError from exc
-        
         await self.db.commit()
 
 
     async def delete_category(self, category_id: int) -> None:
+        templates: list[TemplateDTO] = await self.db.templates.get_all_filtered(category_id=category_id)
+        if templates:
+            raise CategoryInUseError(
+                detail="Данная категория используется в шаблонах с id: " + 
+                ', '.join(map(str, [template.id for template in templates]))
+            )
+        
         try:
             await self.db.categories.delete(id=category_id)
         except ObjectNotFoundError as exc:

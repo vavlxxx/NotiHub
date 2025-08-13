@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy.orm import mapped_column, Mapped, relationship
-from sqlalchemy import DateTime, ForeignKey, func
+from sqlalchemy import DateTime, ForeignKey, Text, UniqueConstraint, func
 from src.models.base import Base
 
 
@@ -14,13 +14,16 @@ class Category(Base):
 
 
 class Template(Base):
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     title: Mapped[str]
-    content: Mapped[str]
+    content: Mapped[str] = mapped_column(Text)
     description: Mapped[str | None]
     category_id: Mapped[int] = mapped_column(ForeignKey("template_categories.id"))
-    is_active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default= func.now(), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default= func.now(), onupdate=func.now())
-    
     category: Mapped["Category"] = relationship(back_populates="templates")
+    
     __tablename__ = "templates"
+    __table_args__ = (
+        UniqueConstraint("owner_id", "content", name="unique_templates_for_owner"),
+    )

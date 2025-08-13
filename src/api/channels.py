@@ -1,7 +1,8 @@
 from pathlib import Path
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Body, Depends
 
-from src.schemas.channels import UserChannelAddRequestDTO, UserChannelUpdateDTO
+from api.examples.channels import EXAMPLE_CHANNELS
+from src.schemas.channels import RequestAddChannelDTO, UpdateChannelDTO
 from src.dependencies.users import auth_required, UserMetaDep
 from src.dependencies.db import DBDep
 from src.services.channels import ChannelService
@@ -27,7 +28,7 @@ router = APIRouter(
 async def add_channel(
     db: DBDep,
     user_meta: UserMetaDep,
-    data: UserChannelAddRequestDTO
+    data: RequestAddChannelDTO = Body(description="Данные о контактном канале", openapi_examples=EXAMPLE_CHANNELS)
 ):  
     try:
         channel = await ChannelService(db).add_channel(data=data, user_meta=user_meta)
@@ -42,8 +43,8 @@ async def add_channel(
 async def update_channel(
     db: DBDep,
     user_meta: UserMetaDep,
-    data: UserChannelUpdateDTO,
-    channel_id: int = Path(description="ID канала")
+    data: UpdateChannelDTO = Body(description="Данные о контактном канале", openapi_examples=EXAMPLE_CHANNELS),
+    channel_id: int = Path(description="ID канала") # type: ignore
 ):
     try:
         await ChannelService(db).update_channel(data=data, channel_id=channel_id, user_meta=user_meta)
@@ -60,7 +61,7 @@ async def update_channel(
 async def delete_channel(
     db: DBDep,
     user_meta: UserMetaDep,
-    channel_id: int = Path(description="ID канала")
+    channel_id: int = Path(description="ID канала") # type: ignore
 ):
     try:
         await ChannelService(db).delete_channel(channel_id=channel_id, user_meta=user_meta)

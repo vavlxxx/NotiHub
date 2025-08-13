@@ -1,18 +1,17 @@
 from datetime import datetime, timezone
 from sqlalchemy import select
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import joinedload
 
 from src.repos.base import BaseRepository
-from src.schemas.notifications import NotificationScheduleDTO, ScheduleWithChannelsDTO
+from src.schemas.notifications import ScheduleDTO, ScheduleWithChannelsDTO
 from src.models.notifications import NotificationSchedule
-from src.models.users import UserContactChannel
 
 
 class ScheduleRepository(BaseRepository):
-    schema = NotificationScheduleDTO
+    schema = ScheduleDTO
     model = NotificationSchedule
 
-    async def get_current_schedules_to_perform(self, *filter, **filter_by) -> list[NotificationScheduleDTO]:
+    async def get_current_schedules_to_perform(self, *filter, **filter_by) -> list[ScheduleWithChannelsDTO]:
         query = (
             select(self.model)
             .filter(

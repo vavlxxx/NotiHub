@@ -5,11 +5,14 @@ from fastapi import APIRouter, Body, Depends
 from src.dependencies.db import DBDep
 from src.dependencies.templates import PaginationDep
 from src.dependencies.users import only_staff
-from src.schemas.categories import CategoryAddDTO, CategoryUpdateDTO
+from src.schemas.categories import AddCategoryDTO, UpdateCategoryDTO
 from src.services.categories import CategoryService
+from src.api.examples.categories import EXAMPLE_CATEGORIES
 from src.utils.exceptions import (
     CategoryExistsError,
     CategoryExistsHTTPError,
+    CategoryInUseError,
+    CategoryInUseHTTPError,
     CategoryNotFoundError, 
     CategoryNotFoundHTTPError
 )
@@ -44,7 +47,7 @@ async def get_categories_list(
         dependencies=[Depends(only_staff)])
 async def add_category(
     db: DBDep,
-    data: CategoryAddDTO = Body(description="Данные о категории"),
+    data: AddCategoryDTO = Body(description="Данные о категории", openapi_examples=EXAMPLE_CATEGORIES),
 ):  
     try:
         category = await CategoryService(db).add_category(data=data)
@@ -64,8 +67,8 @@ async def add_category(
         dependencies=[Depends(only_staff)])
 async def update_category(
     db: DBDep,
-    data: CategoryUpdateDTO = Body(description="Данные о категории"),
-    category_id: int = Path(),
+    data: UpdateCategoryDTO = Body(description="Данные о категории", openapi_examples=EXAMPLE_CATEGORIES),
+    category_id: int = Path("ID категории") # type: ignore
 ):  
     try:
         await CategoryService(db).update_category(category_id=category_id, data=data)
@@ -83,11 +86,13 @@ async def update_category(
         dependencies=[Depends(only_staff)])
 async def delete_category(
     db: DBDep,
-    category_id: int = Path(),
+    category_id: int = Path("ID категории") # type: ignore
 ):
     try:
         await CategoryService(db).delete_category(category_id=category_id)
     except CategoryNotFoundError as exc:
         raise CategoryNotFoundHTTPError from exc
-   
+    except CategoryInUseError as exc:
+        raise CategoryInUseHTTPError(detail=exc.detail) from exc
+       
     return {"status": "OK"}

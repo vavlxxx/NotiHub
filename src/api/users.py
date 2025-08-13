@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Body, Depends, Response
 
 from src.api.examples.users import EXAMPLE_USER_LOGIN, EXAMPLE_USER_UPDATE
-from src.services.users import UserService
-
-from src.dependencies.db import DBDep
+from src.schemas.users import RequestRegisterUserDTO, RequestLoginUserDTO, UserUpdateDTO
 from src.dependencies.users import UserMetaDep, auth_required
+from src.services.users import UserService
+from src.dependencies.db import DBDep
 from src.utils.exceptions import (
     LoginDataError,
     LoginDataHTTPError,
@@ -14,7 +14,6 @@ from src.utils.exceptions import (
     UserExistsHTTPError,
 )
 
-from src.schemas.users import UserRegisterRequestDTO, UserLoginRequestDTO, UserUpdateDTO
 
 
 router = APIRouter(prefix="/auth", tags=["Работа с пользователями"])
@@ -24,13 +23,12 @@ router = APIRouter(prefix="/auth", tags=["Работа с пользовател
 async def register_user(
     db: DBDep,
     user_meta: UserMetaDep,
-    user_data: UserRegisterRequestDTO = Body(description="Логин и пароль", openapi_examples=EXAMPLE_USER_LOGIN)
+    user_data: RequestRegisterUserDTO = Body(description="Логин и пароль", openapi_examples=EXAMPLE_USER_LOGIN)
 ):
     try:
         await UserService(db).add_user(user_data, user_meta=user_meta)
     except UserExistsError as exc:
         raise UserExistsHTTPError from exc
-
     return {"status": "OK"}
 
 
@@ -38,13 +36,12 @@ async def register_user(
 async def login_user(
     db: DBDep,
     response: Response = Response(status_code=200),
-    user_data: UserLoginRequestDTO = Body(description="Логин и пароль", openapi_examples=EXAMPLE_USER_LOGIN)
+    user_data: RequestLoginUserDTO = Body(description="Логин и пароль", openapi_examples=EXAMPLE_USER_LOGIN)
 ):
     try:
         access_token = await UserService(db).login_user(response=response, user_data=user_data)
     except LoginDataError as exc:
         raise LoginDataHTTPError from exc
-
     return {
         "status": "OK", 
         "access_token": access_token
@@ -52,9 +49,9 @@ async def login_user(
 
 
 @router.patch(
-        path="/edit", 
-        summary="Обновить профиль пользователя",
-        dependencies=[Depends(auth_required)])
+    path="/edit", 
+    summary="Обновить профиль пользователя",
+    dependencies=[Depends(auth_required)])
 async def edit_user(
     db: DBDep,
     user_meta: UserMetaDep,
@@ -68,26 +65,27 @@ async def edit_user(
 
 
 @router.get(
-        path="/me", 
-        summary="Получить профиль аутентифицированного пользователя",
-        dependencies=[Depends(auth_required)])
+    path="/me", 
+    summary="Получить профиль аутентифицированного пользователя",
+    dependencies=[Depends(auth_required)])
 async def get_profile(
     db: DBDep,
     user_meta: UserMetaDep 
 ):
     try:
-        user = await UserService(db).get_user(id=user_meta.get("user_id"))
+        user = await UserService(db).get_user(id=user_meta.get("user_id", 0)) # type: ignore
     except UserNotFoundError as exc:
         raise UserNotFoundHTTPError from exc
     return {
+        "status": "OK",
         "data": user
     }
 
 
 @router.post(
-        path="/logout", 
-        summary="Выйти из аккаунта",
-        dependencies=[Depends(auth_required)])
+    path="/logout", 
+    summary="Выйти из аккаунта",
+    dependencies=[Depends(auth_required)])
 async def logout_user( 
     response: Response = Response(status_code=200)
 ):

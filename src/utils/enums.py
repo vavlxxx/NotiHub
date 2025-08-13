@@ -5,7 +5,6 @@ class ContactChannelType(str, Enum):
     EMAIL = "EMAIL"
     TELEGRAM = "TELEGRAM"
 
-
 class UserRole(str, Enum):
     ADMIN = "ADMIN"
     USER = "USER"
@@ -13,9 +12,11 @@ class UserRole(str, Enum):
 class NotificationStatus(str, Enum):
     SUCCESS = "SUCCESS"
     FAILURE = "FAILURE"
-    PENDING = "PENDING"
 
 class ScheduleType(str, Enum):
     ONCE = "ONCE"
     RECURRING = "RECURRING"
-    
+
+class ContentType(str, Enum):
+    PLAIN = "plain"
+    HTML = "html"

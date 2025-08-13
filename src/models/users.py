@@ -24,7 +24,6 @@ class User(Base):
 class UserContactChannel(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     contact_value: Mapped[str]
-    is_active: Mapped[bool] = mapped_column(default=True)
     
     channel_type: Mapped[ContactChannelType] = mapped_column(
         ENUM(ContactChannelType), 

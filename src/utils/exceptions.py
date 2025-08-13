@@ -24,9 +24,6 @@ class CategoryNotFoundError(ObjectNotFoundError):
 class ChannelNotFoundError(ObjectNotFoundError):
     pass
 
-class NotificationNotFoundError(ObjectNotFoundError):
-    pass
-
 class ObjectExistsError(NotiHubBaseError):
     pass
 
@@ -39,7 +36,7 @@ class CategoryExistsError(ObjectExistsError):
 class ChannelExistsError(ObjectExistsError):
     pass
 
-class NotificationExistsError(ObjectExistsError):
+class TemplateExistsError(ObjectExistsError):
     pass
 
 class InvalidDBDataError(NotiHubBaseError):
@@ -55,6 +52,9 @@ class MissingTemplateVariablesError(NotiHubBaseError):
     pass
 
 class ChannelInUseError(NotiHubBaseError):
+    pass
+
+class CategoryInUseError(NotiHubBaseError):
     pass
 
 #########################################
@@ -85,13 +85,6 @@ class UserNotFoundHTTPError(ObjectNotFoundHTTPError):
 class ChannelNotFoundHTTPError(ObjectNotFoundHTTPError):
     detail="Контактный канал не найден"
 
-class NotificationNotFoundHTTPError(ObjectNotFoundHTTPError):
-    detail="Уведомление не найдено"
-
-class TemplateSyntaxHTTPError(NotiHubBaseHTTPError):
-    status_code=422
-    detail="Синтаксическая ошибка в шаблоне"
-
 class NotAuthenticatedError(NotiHubBaseHTTPError):
     status_code=401
     detail="Пользователь не аутентифицирован"
@@ -111,19 +104,25 @@ class UserExistsHTTPError(NotiHubBaseHTTPError):
 class ChannelExistsHTTPError(ObjectExistsHTTPError):
     detail="Такой контактный канал уже существует"
 
-class NotificationExistsHTTPError(ObjectExistsHTTPError):
-    detail="Такое уведомление у вас уже существует"
-
 class CategoryExistsHTTPError(ObjectExistsHTTPError):
     detail="Категория для шаблона уже существует"
+
+class TemplateExistsHTTPError(ObjectExistsHTTPError):
+    detail="Такой шаблон уже существует"
 
 class MissingTemplateVariablesHTTPError(NotiHubBaseHTTPError):
     status_code=422
 
 class OnlyStaffHTTPError(NotiHubBaseHTTPError):
     status_code=403
-    detail="Доступно только администраторам"
+    detail="Доступно только для персонала"
 
 class ChannelInUseHTTPError(NotiHubBaseHTTPError):
     status_code=409
-    
+
+class TemplateSyntaxCheckHTTPError(NotiHubBaseHTTPError):
+    status_code=422
+    detail = "Неверная синтаксис шаблона"
+
+class CategoryInUseHTTPError(NotiHubBaseHTTPError):
+    status_code=409

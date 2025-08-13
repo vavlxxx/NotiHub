@@ -1,6 +1,6 @@
-from pydantic import Field
+from pydantic import Field, model_validator
 
-from src.schemas.channels import UserChannelDTO
+from src.schemas.channels import ChannelDTO
 from src.schemas.base import BaseDTO
 from src.utils.enums import UserRole
 
@@ -9,14 +9,14 @@ class _UserDTO(BaseDTO):
     first_name: str | None = None
     last_name: str | None  = None
 
-class UserLoginRequestDTO(BaseDTO):
+class RequestLoginUserDTO(BaseDTO):
     username: str
     password: str = Field(..., min_length=8)
 
-class UserRegisterRequestDTO(UserLoginRequestDTO):
+class RequestRegisterUserDTO(RequestLoginUserDTO):
     role: UserRole = UserRole.USER
 
-class UserRegisterDTO(BaseDTO):
+class RegisterUserDTO(BaseDTO):
     username: str
     password_hash: str
     role: UserRole = UserRole.USER
@@ -27,10 +27,15 @@ class UserDTO(_UserDTO):
     role: UserRole
     
 class UserWithChannelsDTO(UserDTO):
-    channels: list[UserChannelDTO] | None = Field(default_factory=list)
+    channels: list[ChannelDTO] | None = Field(default_factory=list)
 
-class UserPasswdDTO(UserDTO):
+class UserWithPasswordDTO(UserDTO):
     password_hash: str
 
 class UserUpdateDTO(_UserDTO):
-    ...
+    @model_validator(mode="after")
+    def validate_all_fields_are_providen(self):
+        values = tuple(self.model_dump().values())
+        if all(map(lambda val: val is None, values)):
+            raise ValueError("provide at least one non-empty field")
+        return self

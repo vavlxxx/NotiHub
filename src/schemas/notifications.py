@@ -1,8 +1,9 @@
 from datetime import datetime
 
-from pydantic import Field, FutureDatetime, field_validator
+from croniter import croniter
+from pydantic import Field, FutureDatetime, model_validator
 
-from src.schemas.channels import UserChannelDTO
+from src.schemas.channels import ChannelDTO
 from src.schemas.base import BaseDTO
 from src.utils.enums import (
     ContactChannelType, 
@@ -11,78 +12,73 @@ from src.utils.enums import (
 )
 
 
-class NotificationLogSendDTO(BaseDTO):
+class RequestAddLogDTO(BaseDTO):
     message: str
     contact_data: str
     provider_name: ContactChannelType
 
 
-class NotificationLogAddDTO(NotificationLogSendDTO):
-    status: NotificationStatus = NotificationStatus.PENDING
-    processing_time_ms: int = 0
+class AddLogDTO(RequestAddLogDTO):
+    status: NotificationStatus = NotificationStatus.FAILURE
+    provider_response: str | None = None
 
-class NotificationLogDTO(NotificationLogAddDTO):
+class LogDTO(AddLogDTO):
     id: int
     delivered_at : datetime
-    provider_response: str | None
 
 
-class _NotificationSchedule(BaseDTO):
+class _ScheduleDTO(BaseDTO):
     schedule_type: ScheduleType = ScheduleType.ONCE
     scheduled_at: FutureDatetime | None = None
     crontab: str | None = None
-    max_executions: int | None = Field(None, gt=0)
+    max_executions: int = Field(default=0, ge=0)
 
-    @field_validator('max_executions', mode='before')
-    @classmethod
-    def validate_once_scheduled_at(cls, v, values):
-        if values.data.get('schedule_type') == ScheduleType.ONCE and v:
-            raise ValueError("max_executions makes no sense for 'ONCE' notifications")
-        return v
+    @model_validator(mode='after')
+    def validate_schedule_fields(self) -> '_ScheduleDTO':
+        if self.schedule_type == ScheduleType.ONCE:
+            if self.max_executions:
+                raise ValueError("'max_executions' greater than 1 makes no sense for 'ONCE' notifications")
+            if self.crontab:
+                raise ValueError("crontab makes no sense for 'ONCE' notifications")
+                
+        elif self.schedule_type == ScheduleType.RECURRING:
+            if not self.crontab:
+                raise ValueError("crontab is required for 'RECURRING' notifications")
+            
+            if self.crontab:
+                try:
+                    croniter(self.crontab)
+                except ValueError:
+                    raise ValueError("Invalid crontab expression")
+        return self
 
-    @field_validator('crontab', mode='before')
-    @classmethod
-    def validate_recurring_cron(cls, v, values):
-        if values.data.get('schedule_type') == ScheduleType.ONCE and v:
-            raise ValueError("crontab makes no sense for 'ONCE' notifications")
-        
-        elif values.data.get('schedule_type') == ScheduleType.RECURRING and not v:
-            raise ValueError("crontab is required for 'RECURRING' notifications")
-        if v:
-            try:
-                from croniter import croniter
-                croniter(v)
-            except ValueError:
-                raise ValueError("Invalid crontab expression")
-        return v
-
-
-class NotificationSendDTO(_NotificationSchedule):
+class NotificationMassSendDTO(_ScheduleDTO):
     template_id: int
-    channels_ids: list[int]
     variables: dict[str, str]
 
+class NotificationSendDTO(NotificationMassSendDTO):
+    channels_ids: list[int]
 
-class NotificationScheduleAddDTO(_NotificationSchedule):
+class AddScheduleDTO(_ScheduleDTO):
     message: str
     channel_id: int
     scheduled_at: datetime | None = None
     next_execution_at: datetime | None = None
     
 
-class NotificationScheduleDTO(NotificationScheduleAddDTO):
+class ScheduleDTO(AddScheduleDTO):
     id: int
     created_at: datetime
     updated_at: datetime
     last_executed_at: datetime | None = None
     current_executions: int
 
-class NotificationScheduleUpdateDTO(BaseDTO):
+class UpdateScheduleDTO(BaseDTO):
     last_executed_at: datetime | None = None
     next_execution_at: datetime | None = None
     current_executions: int
 
 
-class ScheduleWithChannelsDTO(NotificationScheduleDTO):
-    channel: UserChannelDTO
+class ScheduleWithChannelsDTO(ScheduleDTO):
+    channel: ChannelDTO
     
