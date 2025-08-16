@@ -1,11 +1,14 @@
+import math
 from pathlib import Path
 
 from fastapi import APIRouter, Body, Depends
+from fastapi_cache.decorator import cache
 
 from src.api.examples.templates import EXAMPLE_TEMPLATES
 from src.dependencies.db import DBDep
 from src.dependencies.users import UserMetaDep, auth_required
-from src.dependencies.templates import PaginationDep, TemplateFiltrationDep
+from src.dependencies.templates import TemplateFiltrationDep
+from src.dependencies.pagination import PaginationDep
 from src.schemas.templates import RequestAddTemplateDTO, TemplateUpdateDTO
 from src.services.templates import TemplateService
 from src.utils.exceptions import (
@@ -27,13 +30,14 @@ router = APIRouter(
 
 
 @router.get("/", summary="Получить список всех шаблонов", dependencies=[Depends(auth_required)])
+@cache(expire=120)
 async def get_templates_list(
     db: DBDep,
     pagination: PaginationDep,
     user_meta: UserMetaDep,
     template_filtration: TemplateFiltrationDep
 ):  
-    templates = await TemplateService(db).get_templates_list(
+    total_count, templates = await TemplateService(db).get_templates_list(
         limit=pagination.limit,
         offset=pagination.offset,
         category_id=template_filtration.category_id,
@@ -43,6 +47,9 @@ async def get_templates_list(
 
     return {
         "page": pagination.page,
+        "per_page": pagination.limit,
+        "total_count": total_count,
+        "total_pages": math.ceil(total_count / pagination.limit),
         "offset": pagination.offset,
         "data": templates
     }
@@ -72,7 +79,7 @@ async def add_template(
 async def update_template(
     db: DBDep,
     user_meta: UserMetaDep,
-    template_id: int = Path("ID шаблона"), # type: ignore
+    template_id: int = Path(description="ID шаблона"), # type: ignore
     data: TemplateUpdateDTO = Body(description="Данные о шаблоне", openapi_examples=EXAMPLE_TEMPLATES)
 ):  
     try:
@@ -94,7 +101,7 @@ async def update_template(
 async def delete_template(
     db: DBDep,
     user_meta: UserMetaDep,
-    template_id: int = Path("ID шаблона") # type: ignore
+    template_id: int = Path(description="ID шаблона") # type: ignore
 ):
     try:
         await TemplateService(db).delete_template(

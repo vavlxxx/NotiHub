@@ -1,8 +1,13 @@
-from fastapi import APIRouter, Body, Depends
+import math
+
+from fastapi import APIRouter, Body, Depends, Path
+from fastapi_cache.decorator import cache
 
 from src.schemas.notifications import NotificationMassSendDTO, NotificationSendDTO
 from src.dependencies.db import DBDep
 from src.dependencies.users import auth_required, UserMetaDep, only_staff
+from src.dependencies.pagination import PaginationDep
+from src.dependencies.schedule import ScheduleFiltrationDep
 from src.services.notifications import NotificationService
 from src.api.examples.notifications import EXAMPLE_NOTIFICATIONS
 from src.utils.exceptions import (
@@ -10,6 +15,8 @@ from src.utils.exceptions import (
     ChannelNotFoundHTTPError,
     MissingTemplateVariablesError,
     MissingTemplateVariablesHTTPError,
+    ScheduleNotFoundError,
+    ScheduleNotFoundHTTPError,
     TemplateNotFoundError,
     TemplateNotFoundHTTPError,
 )
@@ -45,7 +52,7 @@ async def send_one_notification(
     }
 
 
-@router.post("/sendMany", summary="Массовая рассылка всем пользователям", dependencies=[Depends(only_staff)])
+@router.post("/sendMany", summary="Массовая рассылка всем пользователям | Только для персонала", dependencies=[Depends(only_staff)])
 async def send_many_notifications(
     db: DBDep,
     user_meta: UserMetaDep,
@@ -65,27 +72,65 @@ async def send_many_notifications(
         "data": response
     }
 
-# @router.get("/getReport", summary="Получить отчет по статистике уведомлений", dependencies=[Depends(only_staff)])
-# async def get_report(
-#     db: DBDep,
-#     user_meta: UserMetaDep,
-# ):  
-#     response = await NotificationService(db).get_report()
-#     return {
-#         "status": "OK",
-#         "data": response
-#     }
+
+@router.get("/getSchedules", summary="Получить расписание уведомлений")
+# @cache(expire=120)
+async def get_schedules_list(
+    db: DBDep,
+    user_meta: UserMetaDep,
+    pagination: PaginationDep,
+    filtration: ScheduleFiltrationDep
+):  
+    total_count,response = await NotificationService(db).get_schedules(
+        user_meta=user_meta,
+        limit=pagination.limit,
+        offset=pagination.offset,
+        date_begin=filtration.date_begin,
+        date_end=filtration.date_end
+    )
+
+    resp = {
+        "status": "OK",
+        "page": pagination.page,
+        "per_page": pagination.limit,
+        "total_count": total_count,
+        "total_pages": math.ceil(total_count / pagination.limit),
+        "data": response
+    }
+
+    if filtration.date_begin and filtration.date_end:
+        resp["period"] = {"period_start": filtration.date_begin, "period_end": filtration.date_end},
+    return resp
 
 
-# @router.get("/getSchedule", summary="Получить расписание уведомлений")
-# async def get_schedule(
-#     db: DBDep,
-#     user_meta: UserMetaDep,
-# ):  
-#     response = await NotificationService(db).get_schedule(
-#         user_meta=user_meta
-#     )
-#     return {
-#         "status": "OK",
-#         "data": response
-#     }
+@router.delete("/deleteSchedule/{schedule_id}", summary="Удалить расписание уведомлений", dependencies=[Depends(auth_required)])
+async def delete_schedule(
+    db: DBDep,
+    user_meta: UserMetaDep,
+    schedule_id: int = Path(description="ID расписания")
+):  
+    try:
+        await NotificationService(db).delete_schedule(
+            schedule_id=schedule_id,
+            user_meta=user_meta
+        )
+    except ScheduleNotFoundError as exc:
+        raise ScheduleNotFoundHTTPError from exc
+    return {
+        "status": "OK"
+    }
+
+
+@router.get("/getReport", summary="Получить отчет по статистике уведомлений | Только для персонала", dependencies=[Depends(only_staff)])
+async def get_report(
+    db: DBDep,
+    filtration: ScheduleFiltrationDep
+):  
+    response = await NotificationService(db).get_report(
+        date_begin=filtration.date_begin,
+        date_end=filtration.date_end
+    )
+    return {
+        "status": "OK",
+        "data": response
+    }

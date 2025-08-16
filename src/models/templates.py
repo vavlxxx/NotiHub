@@ -14,7 +14,7 @@ class Category(Base):
 
 
 class Template(Base):
-    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     title: Mapped[str]
     content: Mapped[str] = mapped_column(Text)
     description: Mapped[str | None]
@@ -25,5 +25,5 @@ class Template(Base):
     
     __tablename__ = "templates"
     __table_args__ = (
-        UniqueConstraint("owner_id", "content", name="unique_templates_for_owner"),
+        UniqueConstraint("user_id", "content", name="unique_templates_for_owner"),
     )

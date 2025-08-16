@@ -52,6 +52,8 @@ async def update_channel(
         raise ChannelNotFoundHTTPError from exc
     except ChannelExistsError as exc:
         raise ChannelExistsHTTPError from exc
+    except ChannelInUseError as exc:
+        raise ChannelInUseHTTPError(detail=exc.detail) from exc
     return {
         "status": "OK"
     }

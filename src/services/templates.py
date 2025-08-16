@@ -15,14 +15,22 @@ from src.utils.exceptions import (
 
 
 class TemplateService(BaseService):
-    async def get_templates_list(self, limit: int, offset: int, category_id: int | None, only_mine: bool, user_meta: dict) -> list[TemplateDTO]:
-        templates: list[TemplateDTO] = await self.db.templates.get_all_filtered_with_params(
+    async def get_templates_list(
+            self, 
+            limit: int, 
+            offset: int, 
+            category_id: int | None, 
+            only_mine: bool, 
+            user_meta: dict
+        ) -> tuple[int, list[TemplateDTO]]:
+        
+        total_count,  templates = await self.db.templates.get_all_filtered_with_pagination(
             limit=limit, 
             offset=offset,
             category_id=category_id,
-            user_id=user_meta.get("user_id", 0) if only_mine else only_mine
+            user_id=user_meta.get("user_id", 0) if only_mine else None
         )
-        return templates
+        return total_count, templates
 
     
     async def _validate_template(self, template: RequestAddTemplateDTO | TemplateUpdateDTO) -> None:
@@ -54,7 +62,7 @@ class TemplateService(BaseService):
         
         new_template_schema = AddTemplateDTO(
             **data.model_dump(),
-            owner_id=user_meta.get("user_id", 0)
+            user_id=user_meta.get("user_id", 0)
         )
 
         try:
@@ -77,7 +85,7 @@ class TemplateService(BaseService):
         
         try:
             await self.db.templates.edit(
-                owner_id=user_meta.get("user_id", 0),
+                user_id=user_meta.get("user_id", 0),
                 id=template_id, 
                 data=data, 
             )
@@ -89,7 +97,7 @@ class TemplateService(BaseService):
     async def delete_template(self, template_id: int, user_meta: dict) -> None:
         try:
             await self.db.templates.delete(
-                owner_id=user_meta.get("user_id", 0), 
+                user_id=user_meta.get("user_id", 0), 
                 id=template_id
             )
         except ObjectNotFoundError as exc:

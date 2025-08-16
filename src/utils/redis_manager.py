@@ -1,4 +1,8 @@
+import pickle
+from typing import Any
+
 from redis.asyncio import Redis
+
 from src.settings import settings
 
 
@@ -12,11 +16,14 @@ class RedisManager:
         await self._redis.ping()
         return self._redis
 
-    async def set(self, key: str, value: str, ex: int | None = None):
-        await self._redis.set(name=key, value=value, ex=ex)
+    async def set(self, key: Any, value: Any, ex: int | None = 120):
+        b_key, b_value = pickle.dumps(key), pickle.dumps(value)
+        await self._redis.set(name=b_key, value=b_value, ex=ex)
 
-    async def get(self, key: str):
-        return await self._redis.get(name=key)
+    async def get(self, key: Any):
+        b_key = pickle.dumps(key)
+        b_value = await self._redis.get(name=b_key)
+        return pickle.loads(b_value)
     
     async def close(self):
         if self._redis:

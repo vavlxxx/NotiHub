@@ -8,6 +8,14 @@ from celery.signals import setup_logging
 from src.settings import settings
 
 
+@setup_logging.connect
+def config_loggers(*args, **kwargs):
+    basepath = Path(__file__).resolve().parent.parent.parent
+    with open(basepath / "logging_config.json", "r") as f:
+        config = json.load(f)
+    logging.config.dictConfig(config)
+
+
 celery_app = Celery(
     "tasks",
     broker=settings.redis_url,
@@ -17,14 +25,7 @@ celery_app = Celery(
     ],
 )
 
-
-@setup_logging.connect
-def config_loggers(*args, **kwargs):
-    basepath = Path(__file__).resolve().parent.parent.parent
-    with open(basepath / "logging_config.json", "r") as f:
-        config = json.load(f)
-    logging.config.dictConfig(config)
-
+celery_app.conf.worker_hijack_root_logger = False
 
 celery_app.conf.beat_schedule = {
     "check_notification_schedule": {

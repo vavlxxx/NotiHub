@@ -1,5 +1,7 @@
 from fastapi import HTTPException
 
+from src.settings import settings
+
 
 class NotiHubBaseError(Exception):
     detail = "Неизвестная ошибка"
@@ -24,6 +26,9 @@ class CategoryNotFoundError(ObjectNotFoundError):
 class ChannelNotFoundError(ObjectNotFoundError):
     pass
 
+class ScheduleNotFoundError(ObjectNotFoundError):
+    pass
+
 class ObjectExistsError(NotiHubBaseError):
     pass
 
@@ -43,6 +48,9 @@ class InvalidDBDataError(NotiHubBaseError):
     pass
 
 class LoginDataError(NotiHubBaseError):
+    pass
+
+class TokenUpdateError(NotiHubBaseError):
     pass
 
 class TemplateSyntaxCheckError(NotiHubBaseError):
@@ -93,6 +101,10 @@ class LoginDataHTTPError(NotiHubBaseHTTPError):
     status_code=401
     detail="Неверные логин или пароль"
 
+class TokenUpdateHTTPError(NotiHubBaseHTTPError):
+    status_code=401
+    detail=f"Новый токен доступа можно получать только раз в {settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES/60:.1f} ч., либо выйдя из текущего аккаунта"
+
 class ObjectExistsHTTPError(NotiHubBaseHTTPError):
     status_code=409
     detail="Объект уже существует"
@@ -126,3 +138,12 @@ class TemplateSyntaxCheckHTTPError(NotiHubBaseHTTPError):
 
 class CategoryInUseHTTPError(NotiHubBaseHTTPError):
     status_code=409
+
+class ScheduleNotFoundHTTPError(ObjectNotFoundHTTPError):
+    status_code=404
+    detail = "Расписание не найдено"
+
+class InvalidDatetimeRangeHTTPError(NotiHubBaseHTTPError):
+    status_code=422
+    detail = "Неверный диапазон даты и времени"
+    

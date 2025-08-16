@@ -6,7 +6,7 @@ authors = [
     {name = "vavlxxx",email = "vladimir.nefedov357@gmail.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<4.0"
 dependencies = [
     "fastapi[standart] (>=0.116.1,<0.117.0)",
     "uvicorn (>=0.35.0,<0.36.0)",
@@ -27,6 +27,7 @@ dependencies = [
     "aiohttp (>=3.12.15,<4.0.0)",
     "croniter (>=6.0.0,<7.0.0)",
     "aiosmtplib (>=4.0.1,<5.0.0)",
+    "fastapi-cache2 (>=0.2.2,<0.3.0)",
 ]
 
 

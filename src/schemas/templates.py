@@ -9,7 +9,7 @@ class RequestAddTemplateDTO(BaseDTO):
     description: str | None = None
 
 class AddTemplateDTO(RequestAddTemplateDTO):
-    owner_id: int
+    user_id: int
 
 class TemplateUpdateDTO(BaseDTO):
     title: str | None = None

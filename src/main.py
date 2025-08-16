@@ -9,6 +9,9 @@ from contextlib import asynccontextmanager
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.redis import RedisBackend
 
 from src.utils.db_manager import DB_Manager
 from src.utils.redis_manager import redis_manager
@@ -61,6 +64,8 @@ async def lifespan(app: FastAPI):
 
     await redis_manager.connect()
     logger.info("Successfully connected to Redis")
+    FastAPICache.init(RedisBackend(redis_manager._redis), prefix="fastapi-cache")
+    logger.info("FastAPICache initialized...")
     yield
     await redis_manager.close()
     logger.info("Connection to Redis has been closed")
@@ -79,6 +84,13 @@ app.include_router(router=router_users)
 app.include_router(router=router_channels)
 app.include_router(router=router_notifications)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 if __name__ == "__main__":
     uvicorn.run(

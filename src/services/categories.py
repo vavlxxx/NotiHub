@@ -12,11 +12,8 @@ from src.utils.exceptions import (
 
 
 class CategoryService(BaseService):
-    async def get_categories_list(self, limit: int, offset: int) -> list[CategoryDTO]:
-        categories: list[CategoryDTO] = await self.db.categories.get_all_filtered_with_params(
-            limit=limit, 
-            offset=offset
-        )
+    async def get_categories_list(self) -> list[CategoryDTO]:
+        categories: list[CategoryDTO] = await self.db.categories.get_all_filtered()
         return categories
     
 

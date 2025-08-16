@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Depends, Response
+from fastapi import APIRouter, Body, Depends, Request, Response
 
 from src.api.examples.users import EXAMPLE_USER_LOGIN, EXAMPLE_USER_UPDATE
 from src.schemas.users import RequestRegisterUserDTO, RequestLoginUserDTO, UserUpdateDTO
@@ -8,6 +8,8 @@ from src.dependencies.db import DBDep
 from src.utils.exceptions import (
     LoginDataError,
     LoginDataHTTPError,
+    TokenUpdateError,
+    TokenUpdateHTTPError,
     UserNotFoundError,
     UserNotFoundHTTPError,
     UserExistsError,
@@ -35,13 +37,16 @@ async def register_user(
 @router.post("/login", summary="Пройти аутентификацию")
 async def login_user(
     db: DBDep,
+    request: Request,
     response: Response = Response(status_code=200),
-    user_data: RequestLoginUserDTO = Body(description="Логин и пароль", openapi_examples=EXAMPLE_USER_LOGIN)
+    user_data: RequestLoginUserDTO = Body(description="Логин и пароль", openapi_examples=EXAMPLE_USER_LOGIN),
 ):
     try:
-        access_token = await UserService(db).login_user(response=response, user_data=user_data)
+        access_token = await UserService(db).login_user(response=response, request=request, user_data=user_data)
     except LoginDataError as exc:
         raise LoginDataHTTPError from exc
+    except TokenUpdateError as exc:
+        raise TokenUpdateHTTPError from exc
     return {
         "status": "OK", 
         "access_token": access_token

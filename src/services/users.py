@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta, timezone
+from time import time
 
 import jwt
-from fastapi import HTTPException
+from fastapi import HTTPException, Request, Response
 from passlib.context import CryptContext
 
 from schemas.channels import ChannelDTO
@@ -19,6 +20,7 @@ from src.schemas.users import (
 from src.utils.enums import UserRole
 from src.utils.exceptions import (
     LoginDataError,
+    TokenUpdateError,
     ObjectExistsError,
     ObjectNotFoundError,
     UserExistsError,
@@ -67,7 +69,14 @@ class UserService(BaseService):
         await self.db.commit()
 
 
-    async def login_user(self, user_data: RequestLoginUserDTO, response):
+    async def login_user(self, user_data: RequestLoginUserDTO, response: Response, request: Request):
+        token = request.cookies.get("access_token", None)
+        if token:
+            decoded_token = self.decode_access_token(access_token=token)
+            expires: int = decoded_token.get("exp", None)
+            if expires and datetime.fromtimestamp(expires, timezone.utc) > datetime.now(timezone.utc):
+                raise TokenUpdateError
+
         try:
             user: UserWithPasswordDTO = await self.db.users.get_user_with_passwd(username=user_data.username)
         except ObjectNotFoundError as exc:

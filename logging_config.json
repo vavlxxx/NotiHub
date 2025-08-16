@@ -32,44 +32,49 @@
     },
     "loggers": {
         "src": {
-            "handlers": ["stdout", "main_file"],
-            "level": "INFO"
-        },
-        "src.tasks": {
-            "handlers": ["stdout", "celery_file"],
-            "level": "INFO"
+            "handlers": ["stdout","main_file"],
+            "level": "INFO",
+            "propagate": false
         },
         "fastapi": {
-            "handlers": ["stdout", "main_file"],
-            "level": "INFO"
+            "handlers": ["stdout","main_file"],
+            "level": "INFO",
+            "propagate": false
         },
         "uvicorn": {
-            "handlers": ["stdout", "main_file"],
-            "level": "INFO"
+            "handlers": ["stdout","main_file"],
+            "level": "INFO",
+            "propagate": false
         },
         "uvicorn.access": {
-            "handlers": ["stdout", "main_file"],
-            "level": "INFO"
+            "handlers": ["stdout","main_file"],
+            "level": "INFO",
+            "propagate": false
         },
         "celery": {
-            "handlers": ["stdout", "celery_file"],
-            "level": "INFO"
+            "handlers": ["stdout","celery_file"],
+            "level": "INFO",
+            "propagate": false
         },
         "celery.task": {
-            "handlers": ["stdout", "celery_file"],
-            "level": "INFO"
+            "handlers": ["stdout","celery_file"],
+            "level": "INFO",
+            "propagate": false
         },
         "celery.worker": {
-            "handlers": ["stdout", "celery_file"],
-            "level": "INFO"
+            "handlers": ["stdout","celery_file"],
+            "level": "INFO",
+            "propagate": false
         },
         "celery.beat": {
-            "handlers": ["stdout", "celery_file"],
-            "level": "INFO"
+            "handlers": ["stdout","celery_file"],
+            "level": "INFO",
+            "propagate": false
         },
         "celery.redirected": {
-            "handlers": ["stdout", "celery_file"],
-            "level": "INFO"
+            "handlers": ["stdout","celery_file"],
+            "level": "INFO",
+            "propagate": false
         }
     },
     "formatters": {

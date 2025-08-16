@@ -1,11 +1,11 @@
 from pathlib import Path
 
 from fastapi import APIRouter, Body, Depends
+from fastapi_cache.decorator import cache
 
 from src.dependencies.db import DBDep
-from src.dependencies.templates import PaginationDep
 from src.dependencies.users import only_staff
-from src.schemas.categories import AddCategoryDTO, UpdateCategoryDTO
+from src.schemas.categories import AddCategoryDTO, CategoryDTO, UpdateCategoryDTO
 from src.services.categories import CategoryService
 from src.api.examples.categories import EXAMPLE_CATEGORIES
 from src.utils.exceptions import (
@@ -25,18 +25,13 @@ router = APIRouter(
 
 
 @router.get("/", summary="Получить список всех категорий для шаблонов")
+@cache(expire=120)
 async def get_categories_list(
     db: DBDep,
-    pagination: PaginationDep,
 ):  
-    categories = await CategoryService(db).get_categories_list(
-        limit=pagination.limit,
-        offset=pagination.offset
-    )
-
+    categories: list[CategoryDTO] = await CategoryService(db).get_categories_list()
     return {
-        "page": pagination.page,
-        "offset": pagination.offset,
+        "status": "OK",
         "data": categories
     }
 

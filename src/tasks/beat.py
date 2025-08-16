@@ -9,7 +9,6 @@ from src.tasks.app import celery_app
 from src.utils.db_manager import DB_Manager
 from src.db import sessionmaker_null_pool
 from src.utils.enums import ScheduleType
-
 from src.schemas.notifications import (
     RequestAddLogDTO, 
     UpdateScheduleDTO, 
@@ -45,7 +44,9 @@ async def _update_schedule_after_execution(db: DB_Manager, schedule: ScheduleWit
     next_execution_time = schedule.scheduled_at
     new_executions_count = schedule.current_executions + 1
     
-    if schedule.max_executions == 0 or (new_executions_count >= schedule.max_executions):
+    if ((new_executions_count >= schedule.max_executions) and 
+        ((schedule.schedule_type == ScheduleType.ONCE) or 
+         (schedule.schedule_type == ScheduleType.RECURRING and schedule.max_executions != 0))):
         await db.schedules.delete(ensure_existence=False, id=schedule.id)
         logger.info("Reached 'max_executions': (%d) count, schedule was deleted: %s", schedule.max_executions, schedule)
         return
