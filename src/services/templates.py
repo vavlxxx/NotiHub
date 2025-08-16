@@ -32,6 +32,14 @@ class TemplateService(BaseService):
         )
         return total_count, templates
 
+
+    async def get_template(self, template_id: int) -> TemplateDTO:
+        try:
+            template: TemplateDTO = await self.db.templates.get_one(id=template_id)
+        except ObjectNotFoundError as exc:
+            raise TemplateNotFoundError from exc
+        return template
+    
     
     async def _validate_template(self, template: RequestAddTemplateDTO | TemplateUpdateDTO) -> None:
         if template.content is None:

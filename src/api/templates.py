@@ -55,6 +55,22 @@ async def get_templates_list(
     }
 
 
+@router.get("/{template_id}/", summary="Получить конкретный шаблон по ID")
+async def get_template(
+    db: DBDep,
+    template_id: int = Path(description="ID шаблона") # type: ignore
+):  
+    try:
+        template = await TemplateService(db).get_template(template_id=template_id)
+    except TemplateNotFoundError as exc:
+        raise TemplateNotFoundHTTPError from exc
+    
+    return {
+        "status": "OK",
+        "data": template
+    }
+
+
 @router.post("/", summary="Добавить шаблон", dependencies=[Depends(auth_required)])
 async def add_template(
     db: DBDep,
@@ -75,7 +91,7 @@ async def add_template(
     }
 
 
-@router.patch("/{template_id}", summary="Обновить шаблон", dependencies=[Depends(auth_required)])
+@router.patch("/{template_id}/", summary="Обновить шаблон", dependencies=[Depends(auth_required)])
 async def update_template(
     db: DBDep,
     user_meta: UserMetaDep,
@@ -97,7 +113,7 @@ async def update_template(
     return {"status": "OK"}
 
 
-@router.delete("/{template_id}", summary="Удалить шаблон", dependencies=[Depends(auth_required)])
+@router.delete("/{template_id}/", summary="Удалить шаблон", dependencies=[Depends(auth_required)])
 async def delete_template(
     db: DBDep,
     user_meta: UserMetaDep,

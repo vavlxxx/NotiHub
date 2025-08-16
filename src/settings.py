@@ -1,5 +1,5 @@
 import os
-from typing import Any
+from typing import Any, Literal
 
 from typing_extensions import Self
 from dataclasses import dataclass
@@ -36,6 +36,8 @@ class Settings:
     SMTP_PASSWORD: str
 
     TELEGRAM_BOT_TOKEN: str
+
+    MODE: Literal["TEST", "DEV", "PROD"]
 
     APP_NAME: str = "🔔 NotiHub"
 
@@ -76,6 +78,8 @@ class Settings:
             SMTP_PASSWORD=cls._get_env_var('SMTP_PASSWORD', to_cast=str),
          
             TELEGRAM_BOT_TOKEN=cls._get_env_var('TELEGRAM_BOT_TOKEN', to_cast=str),
+
+            MODE=cls._get_env_var('MODE', to_cast=str),
         )
     
     @property

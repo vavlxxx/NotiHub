@@ -19,6 +19,8 @@ from src.schemas.users import (
 )
 from src.utils.enums import UserRole
 from src.utils.exceptions import (
+    ExpiredTokenHTTPError,
+    InvalidTokenHTTPError,
     LoginDataError,
     TokenUpdateError,
     ObjectExistsError,
@@ -70,13 +72,6 @@ class UserService(BaseService):
 
 
     async def login_user(self, user_data: RequestLoginUserDTO, response: Response, request: Request):
-        token = request.cookies.get("access_token", None)
-        if token:
-            decoded_token = self.decode_access_token(access_token=token)
-            expires: int = decoded_token.get("exp", None)
-            if expires and datetime.fromtimestamp(expires, timezone.utc) > datetime.now(timezone.utc):
-                raise TokenUpdateError
-
         try:
             user: UserWithPasswordDTO = await self.db.users.get_user_with_passwd(username=user_data.username)
         except ObjectNotFoundError as exc:
@@ -89,9 +84,9 @@ class UserService(BaseService):
         if user.role == UserRole.ADMIN:
             token_data["is_admin"] = True
 
-        access_token = self.create_access_token(token_data)
+        access_token, expire = self.create_access_token(token_data)
         response.set_cookie(key="access_token", value=access_token)
-        return access_token
+        return access_token, expire
 
 
     async def get_user(self, *filter, include_channels: bool = True, **filter_by) -> UserDTO | UserWithChannelsDTO:
@@ -117,7 +112,7 @@ class UserService(BaseService):
         encoded_jwt = jwt.encode(
             to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
         )
-        return encoded_jwt
+        return encoded_jwt, expire
 
 
     @staticmethod
@@ -129,6 +124,6 @@ class UserService(BaseService):
                 algorithms=[settings.JWT_ALGORITHM],
             )
         except jwt.exceptions.DecodeError:
-            raise HTTPException(status_code=401, detail="Неверный токен")
+            raise InvalidTokenHTTPError
         except jwt.exceptions.ExpiredSignatureError:
-            raise HTTPException(status_code=401, detail="Срок действия токена истёк. Пожалуйста пройдите аутентификацию заново")
+            raise ExpiredTokenHTTPError

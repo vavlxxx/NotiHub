@@ -13,8 +13,8 @@ class ScheduleFiltrationDTO(BaseDTO):
 
 
 def get_schedule_filtration_params(
-        date_begin: Annotated[datetime | None, Query(description="Начало промежутка оповещения", example=datetime.now())] = None,
-        date_end: Annotated[datetime | None, Query(description="Конец промежутка оповещения", example=(datetime.now() + timedelta(days=1)))] = None,
+        date_begin: Annotated[datetime | None, Query(description="Начало промежутка оповещения", examples=[datetime.now()])] = None,
+        date_end: Annotated[datetime | None, Query(description="Конец промежутка оповещения", examples=([datetime.now() + timedelta(days=1)]))] = None,
 ) -> ScheduleFiltrationDTO:
     
     if date_begin is not None and date_end is not None and date_begin > date_end:

@@ -42,14 +42,15 @@ async def login_user(
     user_data: RequestLoginUserDTO = Body(description="Логин и пароль", openapi_examples=EXAMPLE_USER_LOGIN),
 ):
     try:
-        access_token = await UserService(db).login_user(response=response, request=request, user_data=user_data)
+        access_token, expire = await UserService(db).login_user(response=response, request=request, user_data=user_data)
     except LoginDataError as exc:
         raise LoginDataHTTPError from exc
     except TokenUpdateError as exc:
         raise TokenUpdateHTTPError from exc
     return {
         "status": "OK", 
-        "access_token": access_token
+        "access_token": access_token,
+        "expires_in": expire
     }
 
 
