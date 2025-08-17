@@ -8,7 +8,7 @@ from src.dependencies.users import auth_required, UserMetaDep, only_staff
 from src.dependencies.pagination import PaginationDep
 from src.dependencies.schedule import ScheduleFiltrationDep
 from src.services.notifications import NotificationService
-from src.api.examples.notifications import EXAMPLE_NOTIFICATIONS
+from src.api.examples.notifications import EXAMPLE_NOTIFICATIONS, EXAMPLE_NOTIFICATIONS_FOR_ALL
 from src.utils.exceptions import (
     ChannelNotFoundError,
     ChannelNotFoundHTTPError,
@@ -57,7 +57,7 @@ async def send_one_notification(
 async def send_many_notifications(
     db: DBDep,
     user_meta: UserMetaDep,
-    data: NotificationMassSendDTO,
+    data: NotificationMassSendDTO = Body(description="Параметры уведомеления", openapi_examples=EXAMPLE_NOTIFICATIONS_FOR_ALL),
 ):
     try:
         response = await NotificationService(db).send_notifications(
