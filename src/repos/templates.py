@@ -17,8 +17,10 @@ class TemplateRepository(BaseRepository):
             **filter_by
         ) -> tuple[int, list[TemplateDTO]]:
 
-        if filter_by.get("category_id") is None: del filter_by["category_id"]
-        if filter_by.get("user_id") is None: del filter_by["user_id"]
+        if filter_by.get("category_id") is None: 
+            del filter_by["category_id"]
+        if filter_by.get("user_id") is None: 
+            del filter_by["user_id"]
 
         total_count_subquery = (
             select(func.count())

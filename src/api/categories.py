@@ -14,7 +14,9 @@ from src.utils.exceptions import (
     CategoryInUseError,
     CategoryInUseHTTPError,
     CategoryNotFoundError, 
-    CategoryNotFoundHTTPError
+    CategoryNotFoundHTTPError,
+    ValueOutOfRangeError,
+    ValueOutOfRangeHTTPError
 )
 
 
@@ -24,7 +26,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", summary="Получить список всех категорий для шаблонов")
+@router.get("", summary="Получить список всех категорий для шаблонов")
 @cache(expire=120)
 async def get_categories_list(
     db: DBDep,
@@ -36,8 +38,26 @@ async def get_categories_list(
     }
 
 
+@router.get("/{category_id}", summary="Получить конкретную категорию по ID")
+async def get_category(
+    db: DBDep,
+    category_id: int = Path(description="ID категории") # type: ignore
+):  
+    try:
+        category = await CategoryService(db).get_category(category_id=category_id)
+    except CategoryNotFoundError as exc:
+        raise CategoryNotFoundHTTPError from exc
+    except ValueOutOfRangeError as exc:
+        raise ValueOutOfRangeHTTPError(detail=exc.detail) from exc
+    
+    return {
+        "status": "OK",
+        "data": category
+    }
+
+
 @router.post(
-        path="/", 
+        path="", 
         summary="Добавить новую категорию | Только для персонала", 
         dependencies=[Depends(only_staff)])
 async def add_category(
@@ -71,6 +91,8 @@ async def update_category(
         raise CategoryNotFoundHTTPError from exc
     except CategoryExistsError as exc:
         raise CategoryExistsHTTPError from exc
+    except ValueOutOfRangeError as exc:
+        raise ValueOutOfRangeHTTPError(detail=exc.detail) from exc
     
     return {"status": "OK"}
 
@@ -89,5 +111,7 @@ async def delete_category(
         raise CategoryNotFoundHTTPError from exc
     except CategoryInUseError as exc:
         raise CategoryInUseHTTPError(detail=exc.detail) from exc
-       
+    except ValueOutOfRangeError as exc:
+        raise ValueOutOfRangeHTTPError(detail=exc.detail) from exc
+    
     return {"status": "OK"}

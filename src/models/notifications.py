@@ -1,7 +1,7 @@
 import typing
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -93,6 +93,10 @@ class NotificationSchedule(Base):
     __tablename__ = "notification_schedules"
     
     __table_args__ = (
+        UniqueConstraint(
+            "channel_id", "message", "schedule_type", "crontab", "max_executions", 
+            name="unique_schedules"
+        ),
         CheckConstraint(
             "(max_executions >= 0) AND (current_executions <= max_executions) AND (current_executions >= 0)",
             name='valid_execution_count'

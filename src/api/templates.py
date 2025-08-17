@@ -19,7 +19,9 @@ from src.utils.exceptions import (
     CategoryNotFoundError, 
     CategoryNotFoundHTTPError,
     TemplateSyntaxCheckError,
-    TemplateSyntaxCheckHTTPError
+    TemplateSyntaxCheckHTTPError,
+    ValueOutOfRangeError,
+    ValueOutOfRangeHTTPError
 )
 
 
@@ -29,7 +31,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", summary="Получить список всех шаблонов", dependencies=[Depends(auth_required)])
+@router.get("", summary="Получить список всех шаблонов", dependencies=[Depends(auth_required)])
 @cache(expire=120)
 async def get_templates_list(
     db: DBDep,
@@ -55,7 +57,7 @@ async def get_templates_list(
     }
 
 
-@router.get("/{template_id}/", summary="Получить конкретный шаблон по ID")
+@router.get("/{template_id}", summary="Получить конкретный шаблон по ID")
 async def get_template(
     db: DBDep,
     template_id: int = Path(description="ID шаблона") # type: ignore
@@ -64,6 +66,8 @@ async def get_template(
         template = await TemplateService(db).get_template(template_id=template_id)
     except TemplateNotFoundError as exc:
         raise TemplateNotFoundHTTPError from exc
+    except ValueOutOfRangeError as exc:
+        raise ValueOutOfRangeHTTPError(detail=exc.detail) from exc
     
     return {
         "status": "OK",
@@ -71,7 +75,7 @@ async def get_template(
     }
 
 
-@router.post("/", summary="Добавить шаблон", dependencies=[Depends(auth_required)])
+@router.post("", summary="Добавить шаблон", dependencies=[Depends(auth_required)])
 async def add_template(
     db: DBDep,
     user_meta: UserMetaDep,
@@ -91,7 +95,7 @@ async def add_template(
     }
 
 
-@router.patch("/{template_id}/", summary="Обновить шаблон", dependencies=[Depends(auth_required)])
+@router.patch("/{template_id}", summary="Обновить шаблон", dependencies=[Depends(auth_required)])
 async def update_template(
     db: DBDep,
     user_meta: UserMetaDep,
@@ -110,10 +114,12 @@ async def update_template(
         raise CategoryNotFoundHTTPError from exc
     except TemplateSyntaxCheckError as exc:
         raise TemplateSyntaxCheckHTTPError from exc
+    except ValueOutOfRangeError as exc:
+        raise ValueOutOfRangeHTTPError(detail=exc.detail) from exc
     return {"status": "OK"}
 
 
-@router.delete("/{template_id}/", summary="Удалить шаблон", dependencies=[Depends(auth_required)])
+@router.delete("/{template_id}", summary="Удалить шаблон", dependencies=[Depends(auth_required)])
 async def delete_template(
     db: DBDep,
     user_meta: UserMetaDep,
@@ -126,4 +132,6 @@ async def delete_template(
         )
     except TemplateNotFoundError as exc:
         raise TemplateNotFoundHTTPError from exc
+    except ValueOutOfRangeError as exc:
+        raise ValueOutOfRangeHTTPError(detail=exc.detail) from exc
     return {"status": "OK"}

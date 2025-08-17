@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta, timezone
-from time import time
 
 import jwt
-from fastapi import HTTPException, Request, Response
+from fastapi import Request, Response
 from passlib.context import CryptContext
 
 from schemas.channels import ChannelDTO
@@ -22,7 +21,6 @@ from src.utils.exceptions import (
     ExpiredTokenHTTPError,
     InvalidTokenHTTPError,
     LoginDataError,
-    TokenUpdateError,
     ObjectExistsError,
     ObjectNotFoundError,
     UserExistsError,
@@ -80,7 +78,7 @@ class UserService(BaseService):
         if not self._verify_password(user_data.password, user.password_hash):
             raise LoginDataError
 
-        token_data = {"user_id": user.id}
+        token_data = {"user_id": user.id, "is_admin": False}
         if user.role == UserRole.ADMIN:
             token_data["is_admin"] = True
 

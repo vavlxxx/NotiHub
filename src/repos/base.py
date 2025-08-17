@@ -1,13 +1,14 @@
 from typing import Any, Sequence
 
-from asyncpg import UniqueViolationError, DataError
+from asyncpg import UniqueViolationError
+from asyncpg.exceptions import DataError
 from sqlalchemy import delete, select, insert, update
 from sqlalchemy.exc import NoResultFound, IntegrityError, DBAPIError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.base import Base
 from src.schemas.base import BaseDTO
-from src.utils.exceptions import ObjectNotFoundError, ObjectExistsError, InvalidDBDataError
+from src.utils.exceptions import ObjectNotFoundError, ObjectExistsError, ValueOutOfRangeError
 
 
 class BaseRepository:
@@ -48,7 +49,7 @@ class BaseRepository:
             raise ObjectNotFoundError
         except DBAPIError as exc:
             if isinstance(exc.orig.__cause__, DataError):  # type: ignore
-                raise InvalidDBDataError from exc
+                raise ValueOutOfRangeError(detail=exc.orig.__cause__.args[0]) from exc # type: ignore
             raise exc
 
         return self.schema.model_validate(obj)

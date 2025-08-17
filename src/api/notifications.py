@@ -1,7 +1,6 @@
 import math
 
 from fastapi import APIRouter, Body, Depends, Path
-from fastapi_cache.decorator import cache
 
 from src.schemas.notifications import NotificationMassSendDTO, NotificationSendDTO
 from src.dependencies.db import DBDep
@@ -19,6 +18,8 @@ from src.utils.exceptions import (
     ScheduleNotFoundHTTPError,
     TemplateNotFoundError,
     TemplateNotFoundHTTPError,
+    ValueOutOfRangeError,
+    ValueOutOfRangeHTTPError,
 )
 
 
@@ -116,9 +117,10 @@ async def delete_schedule(
         )
     except ScheduleNotFoundError as exc:
         raise ScheduleNotFoundHTTPError from exc
-    return {
-        "status": "OK"
-    }
+    except ValueOutOfRangeError as exc:
+        raise ValueOutOfRangeHTTPError(detail=exc.detail) from exc
+    
+    return { "status": "OK" }
 
 
 @router.get("/getReport", summary="Получить отчет по статистике уведомлений | Только для персонала", dependencies=[Depends(only_staff)])

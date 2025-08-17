@@ -13,7 +13,11 @@ from src.utils.exceptions import (
     ChannelInUseError,
     ChannelInUseHTTPError, 
     ChannelNotFoundError,
-    ChannelNotFoundHTTPError
+    ChannelNotFoundHTTPError,
+    ChannelValidationError,
+    ChannelValidationHTTPError,
+    ValueOutOfRangeError,
+    ValueOutOfRangeHTTPError
 )
 
 
@@ -24,7 +28,7 @@ router = APIRouter(
 )
 
 
-@router.post("/", summary="Добавить канал")
+@router.post("", summary="Добавить канал")
 async def add_channel(
     db: DBDep,
     user_meta: UserMetaDep,
@@ -52,8 +56,12 @@ async def update_channel(
         raise ChannelNotFoundHTTPError from exc
     except ChannelExistsError as exc:
         raise ChannelExistsHTTPError from exc
+    except ChannelValidationError as exc:
+        raise ChannelValidationHTTPError from exc
     except ChannelInUseError as exc:
         raise ChannelInUseHTTPError(detail=exc.detail) from exc
+    except ValueOutOfRangeError as exc:
+        raise ValueOutOfRangeHTTPError(detail=exc.detail) from exc
     return {
         "status": "OK"
     }
@@ -71,6 +79,8 @@ async def delete_channel(
         raise ChannelNotFoundHTTPError from exc
     except ChannelInUseError as exc:
         raise ChannelInUseHTTPError(detail=exc.detail) from exc
+    except ValueOutOfRangeError as exc:
+        raise ValueOutOfRangeHTTPError(detail=exc.detail) from exc
     return {
         "status": "OK"
     }

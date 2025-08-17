@@ -25,7 +25,7 @@ EXAMPLE_USER_UPDATE: Dict[str, Example] = {
     },
     
     "MANAGER_PROFILE": {
-        "summary": "Профиль менеджера",
+        "summary": "Пример 1",
         "value": {
             "first_name": "Елена",
             "last_name": "Волкова"
@@ -33,7 +33,7 @@ EXAMPLE_USER_UPDATE: Dict[str, Example] = {
     },
     
     "DOCTOR_PROFILE": {
-        "summary": "Профиль врача",
+        "summary": "Пример 2",
         "value": {
             "first_name": "Александр",
             "last_name": "Медведев"
@@ -41,7 +41,7 @@ EXAMPLE_USER_UPDATE: Dict[str, Example] = {
     },
     
     "TEACHER_PROFILE": {
-        "summary": "Профиль преподавателя",
+        "summary": "Пример 3",
         "value": {
             "first_name": "Мария",
             "last_name": "Кузнецова"
@@ -49,7 +49,7 @@ EXAMPLE_USER_UPDATE: Dict[str, Example] = {
     },
     
     "DEVELOPER_PROFILE": {
-        "summary": "Профиль разработчика",
+        "summary": "Пример 4",
         "value": {
             "first_name": "Сергей",
             "last_name": "Попов"
@@ -57,7 +57,7 @@ EXAMPLE_USER_UPDATE: Dict[str, Example] = {
     },
     
     "ACCOUNTANT_PROFILE": {
-        "summary": "Профиль бухгалтера",
+        "summary": "Пример 5",
         "value": {
             "first_name": "Ольга",
             "last_name": "Морозова"
@@ -67,23 +67,15 @@ EXAMPLE_USER_UPDATE: Dict[str, Example] = {
 
 EXAMPLE_USER_LOGIN: Dict[str, Example] = {
     "STANDARD_LOGIN": {
-        "summary": "Стандартная авторизация",
+        "summary": "Пользователь 1",
         "value": {
             "username": "ivan_petrov",
             "password": "SecurePass123!"
         }
     },
     
-    "ADMIN_LOGIN": {
-        "summary": "Авторизация администратора",
-        "value": {
-            "username": "admin_user",
-            "password": "AdminPassword2024"
-        }
-    },
-    
     "MANAGER_LOGIN": {
-        "summary": "Авторизация менеджера",
+        "summary": "Пользователь 2",
         "value": {
             "username": "elena_volkova",
             "password": "ManagerPass456"
@@ -91,7 +83,7 @@ EXAMPLE_USER_LOGIN: Dict[str, Example] = {
     },
     
     "DOCTOR_LOGIN": {
-        "summary": "Авторизация врача",
+        "summary": "Пользователь 3",
         "value": {
             "username": "doctor_medvedev",
             "password": "MedicalPass789"
@@ -99,7 +91,7 @@ EXAMPLE_USER_LOGIN: Dict[str, Example] = {
     },
     
     "SHOP_OPERATOR": {
-        "summary": "Оператор интернет-магазина",
+        "summary": "Пользователь 4",
         "value": {
             "username": "shop_operator",
             "password": "ShopSecure2024"
@@ -107,7 +99,7 @@ EXAMPLE_USER_LOGIN: Dict[str, Example] = {
     },
     
     "TEACHER_LOGIN": {
-        "summary": "Авторизация преподавателя",
+        "summary": "Пользователь 5",
         "value": {
             "username": "maria_teacher",
             "password": "TeachPass2024"
@@ -115,7 +107,7 @@ EXAMPLE_USER_LOGIN: Dict[str, Example] = {
     },
     
     "DEVELOPER_LOGIN": {
-        "summary": "Авторизация разработчика",
+        "summary": "Пользователь 6",
         "value": {
             "username": "dev_sergey",
             "password": "DevSecure789"
@@ -123,7 +115,7 @@ EXAMPLE_USER_LOGIN: Dict[str, Example] = {
     },
     
     "FINANCE_LOGIN": {
-        "summary": "Авторизация финансиста",
+        "summary": "Пользователь 7",
         "value": {
             "username": "finance_olga",
             "password": "FinancePass456"

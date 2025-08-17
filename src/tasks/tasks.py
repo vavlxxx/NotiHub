@@ -113,54 +113,48 @@ def send_email_notification(self, log_data: dict):
     log_schema = RequestAddLogDTO(**log_data)
     status = NotificationStatus.FAILURE
     provider_response = None
-    should_retry = False
-    exc = None
 
     try:
-        asyncio.run(_send_email_message(log_schema))        
+        asyncio.run(_send_email_message(log_schema))
         logger.info("Successfully sent email message to: %s", log_schema.contact_data)
         status = NotificationStatus.SUCCESS
 
-    except aiosmtplib.SMTPConnectError as exc:
-        provider_response = f"SMTP Connect Error: {str(exc)}"
-        logger.error("Failed to connect to the SMTP server: %s", exc)
-        
-    except aiosmtplib.SMTPRecipientsRefused as exc:
-        provider_response = f"Recipients Refused: {str(exc)}"
-        logger.error("Failed to send email to recipients: %s", exc)
-        
     except aiosmtplib.SMTPAuthenticationError as exc:
-        provider_response = f"Auth Error: {str(exc)}"
+        provider_response = f"Auth Error: {exc}"
         logger.error("Failed authentication to SMTP server: %s", exc)
-        
+
+    except aiosmtplib.SMTPRecipientsRefused as exc:
+        provider_response = f"Recipients Refused: {exc}"
+        logger.error("Failed to send email to recipients: %s", exc)
+
+    except aiosmtplib.SMTPConnectError as exc:
+        provider_response = f"SMTP Connect Error: {exc}"
+        logger.error("Failed to connect to the SMTP server: %s", exc)
+        _maybe_retry(self, exc, log_schema)
+        # если retry не был поднят (например исчерпаны ретраи), упадём ниже в запись FAILURE
+
     except aiosmtplib.SMTPServerDisconnected as exc:
-        provider_response = f"Server Disconnected: {str(exc)}"
+        provider_response = f"Server Disconnected: {exc}"
         logger.error("Server disconnected: %s", exc)
-        should_retry = True
-        
+        _maybe_retry(self, exc, log_schema)
+
     except TimeoutError as exc:
-        provider_response = f"Timeout Error: {str(exc)}"
+        provider_response = f"Timeout Error: {exc}"
         logger.error("Time for connection is out: %s", exc)
-        should_retry = True
+        _maybe_retry(self, exc, log_schema)
 
     except ConnectionAbortedError as exc:
-        provider_response = f"Connection Aborted: {str(exc)}"
+        provider_response = f"Connection Aborted: {exc}"
         logger.error("Connection to SMTP was aborted: %s", exc)
-        should_retry = True
-        
+        _maybe_retry(self, exc, log_schema)
+
     except Exception as exc:
-        provider_response = f"Unexpected Error: {str(exc)}"
+        provider_response = f"Unexpected Error: {exc}"
         logger.error("Unexpected error during email sending: %s", exc)
-        raise exc
+        # На “неожиданном” лучше не ретраить бездумно — поднять, чтобы увидеть проблему
+        raise
 
-    if should_retry:
-        if self.request.retries < self.max_retries:
-            logger.info("Retrying email send to %s in %s seconds", log_schema.contact_data, self.default_retry_delay)
-            raise self.retry(exc=exc, countdown=self.default_retry_delay)
-        
-        logger.error("Max retries exceeded for email to %s", log_schema.contact_data)
-        status = NotificationStatus.FAILURE
-
+    # Если дошли сюда — либо успех, либо ретраи исчерпаны/не применимы
     new_log_schema = AddLogDTO(
         **log_schema.model_dump(),
         provider_response=provider_response,
@@ -168,3 +162,21 @@ def send_email_notification(self, log_data: dict):
     )
     logger.info("New log, after sending notification: %s", new_log_schema)
     asyncio.run(insert_result_into_database(new_log_schema))
+
+
+def _maybe_retry(self, exc: Exception, log_schema: RequestAddLogDTO) -> None:
+    if self.request.retries < self.max_retries:
+        logger.info(
+            "Retrying email send to %s in %s seconds (attempt %s/%s)",
+            log_schema.contact_data,
+            self.default_retry_delay,
+            self.request.retries + 1,
+            self.max_retries
+        )
+        raise self.retry(exc=exc, countdown=self.default_retry_delay)
+
+    logger.error(
+        "Max retries exceeded for email to %s (%s attempts)",
+        log_schema.contact_data,
+        self.max_retries
+    )

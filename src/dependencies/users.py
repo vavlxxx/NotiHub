@@ -13,6 +13,7 @@ def get_access_token(request: Request):
 def auth_required(access_token: str = Depends(get_access_token)):
     if access_token is None:
         raise NotAuthenticatedError
+    UserService.decode_access_token(access_token=access_token)
     return access_token
 
 

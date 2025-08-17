@@ -1,3 +1,8 @@
+from collections import ChainMap
+from typing import Any
+
+from pydantic import ValidationError
+
 from src.services.base import BaseService
 from src.schemas.channels import (
     AddChannelDTO, 
@@ -7,6 +12,7 @@ from src.schemas.channels import (
 )
 from src.utils.exceptions import (
     ChannelInUseError,
+    ChannelValidationError,
     ObjectExistsError,
     ObjectNotFoundError,
     ChannelExistsError,
@@ -35,11 +41,26 @@ class ChannelService(BaseService):
             )
 
         try:
-            channel: ChannelDTO = await self.db.channels.edit(data=data, id=channel_id, user_id=user_meta.get("user_id", 0))
-        except ObjectExistsError as exc:
-            raise ChannelExistsError from exc
+            channel_before_update: ChannelDTO = await self.db.channels.get_one(
+                id=channel_id, 
+                user_id=user_meta.get("user_id", 0)
+            )
+            data_before_update: dict[str, Any] = channel_before_update.model_dump(exclude={"user_id"})
+            RequestAddChannelDTO(**ChainMap(data.model_dump(), data_before_update))
         except ObjectNotFoundError as exc:
             raise ChannelNotFoundError from exc
+        except ValidationError as exc:
+            raise ChannelValidationError from exc
+
+        try:
+            channel: ChannelDTO = await self.db.channels.edit(
+                data=data, 
+                id=channel_id, 
+                user_id=user_meta.get("user_id", 0),
+                ensure_existence=False
+            )
+        except ObjectExistsError as exc:
+            raise ChannelExistsError from exc
         
         await self.db.commit()
         return channel

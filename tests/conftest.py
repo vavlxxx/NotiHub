@@ -1,3 +1,4 @@
+#ruff: noqa: E402, F403
 from typing import AsyncGenerator
 
 from unittest import mock
@@ -8,6 +9,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from src.main import app
+from src.tasks.app import celery_app
 from src.utils.enums import UserRole
 from src.dependencies.db import get_db
 from src.schemas.users import RequestRegisterUserDTO
@@ -16,7 +18,7 @@ from src.settings import settings
 from src.utils.db_manager import DB_Manager
 from src.services.users import UserService
 from src.models import *
-
+from src.models.base import Base
 
 ###
 async def get_db_with_null_pool() -> AsyncGenerator[DB_Manager, None]:
@@ -55,65 +57,72 @@ async def main(check_test_mode):
 
 
 @pytest.fixture(scope="session")
-async def client() -> AsyncGenerator[AsyncClient, None]:
+async def admin() -> AsyncGenerator[AsyncClient, None]:
     app_ = ASGITransport(app=app)
     async with AsyncClient(transport=app_, base_url="http://test") as client:
+        resp = await client.post(
+            "/auth/login",
+            json={
+                "username": settings.DB_ADMIN_LOGIN,
+                "password": settings.DB_ADMIN_PASSWORD
+            },
+        )
+        assert resp
+        assert resp.status_code == 200
+        assert isinstance(resp.json(), dict)
+        
+        data = resp.json()
+        access_token = data.get("access_token")
+        decoded_token = UserService.decode_access_token(access_token=access_token)
+        assert decoded_token.get("is_admin", True)
+        
+        assert access_token is not None
+        cookies_token = client.cookies.get("access_token")
+        assert cookies_token is not None
+        assert cookies_token == access_token
+        yield client
+
+
+@pytest.fixture(scope="session")
+async def ac() -> AsyncGenerator[AsyncClient, None]:
+    app_ = ASGITransport(app=app)
+    async with AsyncClient(transport=app_, base_url="http://test") as client:
+        resp = await client.post(
+            "/auth/register",
+            json={
+                "username": "ivan_petrov",
+                "password": "SecurePass123!"
+            }
+        )
+        assert resp and resp.status_code == 200
+
+        resp = await client.post(
+            "/auth/login",
+            json={
+                "username": "ivan_petrov",
+                "password": "SecurePass123!"
+            }
+        )
+        assert resp and resp.status_code == 200
+        data = resp.json()
+        access_token = data.get("access_token")
+        cookies_token = client.cookies.get("access_token")
+        assert access_token and cookies_token
+        assert cookies_token == access_token
+        
+        decoded_token = UserService.decode_access_token(access_token=access_token)
+        assert not decoded_token.get("is_admin")
+        
         yield client
 
 
 @pytest.fixture(scope="session", autouse=True)
-async def ac(main, client):
-    resp = await client.post(
-        "/auth/register",
-        json={
-            "username": "ivan_petrov",
-            "password": "SecurePass123!"
-        }
+async def celery_eager():
+    celery_app.conf.update(
+        task_always_eager=True,
+        task_eager_propagates=True,
+        task_acks_late=False,
+        broker_url="memory://",
+        result_backend="cache+memory://",
     )
-    assert resp
-    assert resp.status_code == 200
 
-    resp = await client.post(
-        "/auth/login",
-        json={
-            "username": "ivan_petrov",
-            "password": "SecurePass123!"
-        }
-    )
-    assert resp
-    assert resp.status_code == 200
-    data = resp.json()
-    access_token = data.get("access_token")
-    decoded_token = UserService.decode_access_token(access_token=access_token)
-    assert decoded_token.get("is_admin", False) == False
-    
-    assert access_token is not None
-    cookies_token = client.cookies.get("access_token")
-    assert cookies_token is not None
-    assert cookies_token == access_token
-    yield client
-
-
-@pytest.fixture(scope="session", autouse=True)
-async def admin(main, client):
-    resp = await client.post(
-        "/auth/login",
-        json={
-            "username": settings.DB_ADMIN_LOGIN,
-            "password": settings.DB_ADMIN_PASSWORD
-        },
-    )
-    assert resp
-    assert resp.status_code == 200
-    assert isinstance(resp.json(), dict)
-    
-    data = resp.json()
-    access_token = data.get("access_token")
-    decoded_token = UserService.decode_access_token(access_token=access_token)
-    assert decoded_token.get("is_admin", True)
-    
-    assert access_token is not None
-    cookies_token = client.cookies.get("access_token")
-    assert cookies_token is not None
-    assert cookies_token == access_token
-    yield client

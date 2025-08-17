@@ -34,7 +34,7 @@ async def register_user(
     return {"status": "OK"}
 
 
-@router.post("/login", summary="Пройти аутентификацию")
+@router.post("/login", summary="Пройти аутентификацию или получить новый токен")
 async def login_user(
     db: DBDep,
     request: Request,

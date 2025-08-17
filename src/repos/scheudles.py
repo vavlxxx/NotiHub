@@ -1,13 +1,15 @@
 from datetime import datetime, timezone
 
 from sqlalchemy import CursorResult, delete, func, select
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import joinedload
+from asyncpg import DataError
 
 from src.repos.base import BaseRepository
 from src.schemas.notifications import ScheduleDTO, ScheduleWithChannelsDTO
 from src.models.notifications import NotificationSchedule
 from src.models.users import UserContactChannel
-from src.utils.exceptions import ObjectNotFoundError
+from src.utils.exceptions import ObjectNotFoundError, ValueOutOfRangeError
 
 
 class ScheduleRepository(BaseRepository):
@@ -79,7 +81,14 @@ class ScheduleRepository(BaseRepository):
             .filter(self.model.channel_id.in_(select(query_channels_ids_by_user))) # type: ignore
             .filter_by(id=schedule_id)
         )
-        result: CursorResult = await self.session.execute(delete_obj_stmt)
+        
+        try:
+            result: CursorResult = await self.session.execute(delete_obj_stmt)
+        except DBAPIError as exc:
+            if isinstance(exc.orig.__cause__, DataError):  # type: ignore
+                raise ValueOutOfRangeError(detail=exc.orig.__cause__.args[0]) from exc # type: ignore
+            raise exc
+        
         if result.rowcount == 0:
             raise ObjectNotFoundError
         

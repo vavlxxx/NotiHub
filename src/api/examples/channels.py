@@ -6,7 +6,7 @@ EXAMPLE_CHANNELS: Dict[str, Example] = {
     "TELEGRAM": {
         "summary": "TELEGRAM",
         "value": {
-            "contact_value": "your_telegram_id",
+            "contact_value": "telegram_id/username",
             "channel_type": "TELEGRAM"
         }
     },
@@ -14,7 +14,7 @@ EXAMPLE_CHANNELS: Dict[str, Example] = {
     "EMAIL": {
         "summary": "EMAIL",
         "value": {
-            "contact_value": "your_email",
+            "contact_value": "email",
             "channel_type": "EMAIL"
         }
     },

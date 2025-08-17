@@ -1,4 +1,3 @@
-from sqlalchemy import select
 
 from src.repos.base import BaseRepository
 from src.models.templates import Category

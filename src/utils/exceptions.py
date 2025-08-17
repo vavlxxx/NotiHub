@@ -26,6 +26,9 @@ class CategoryNotFoundError(ObjectNotFoundError):
 class ChannelNotFoundError(ObjectNotFoundError):
     pass
 
+class ChannelValidationError(NotiHubBaseError):
+    pass
+
 class ScheduleNotFoundError(ObjectNotFoundError):
     pass
 
@@ -44,7 +47,7 @@ class ChannelExistsError(ObjectExistsError):
 class TemplateExistsError(ObjectExistsError):
     pass
 
-class InvalidDBDataError(NotiHubBaseError):
+class ValueOutOfRangeError(NotiHubBaseError):
     pass
 
 class LoginDataError(NotiHubBaseError):
@@ -92,6 +95,10 @@ class UserNotFoundHTTPError(ObjectNotFoundHTTPError):
 
 class ChannelNotFoundHTTPError(ObjectNotFoundHTTPError):
     detail="Контактный канал не найден"
+
+class ChannelValidationHTTPError(NotiHubBaseHTTPError):
+    status_code=422
+    detail="Неверные данные контактного канала"
 
 class NotAuthenticatedError(NotiHubBaseHTTPError):
     status_code=401
@@ -143,6 +150,9 @@ class ChannelInUseHTTPError(NotiHubBaseHTTPError):
 class TemplateSyntaxCheckHTTPError(NotiHubBaseHTTPError):
     status_code=422
     detail = "Неверная синтаксис шаблона"
+
+class ValueOutOfRangeHTTPError(NotiHubBaseHTTPError):
+    status_code=422
 
 class CategoryInUseHTTPError(NotiHubBaseHTTPError):
     status_code=409

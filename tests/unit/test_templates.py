@@ -1,3 +1,4 @@
+from typing import Any
 from httpx import AsyncClient
 import pytest
 
@@ -8,7 +9,7 @@ async def test_templates_crud(admin: AsyncClient):
         "content": "Здравствуйте, {{ username }}! Ваш заказ № {{ order_id }} успешно оформлен!",
         "description": "Текстовый шаблон для подтверждения заказа в интернет-магазине"
     }
-    result = await admin.post("/templates/", json=data_to_create)
+    result = await admin.post("/templates", json=data_to_create)
 
     assert result.status_code == 200
     data = result.json()
@@ -17,7 +18,7 @@ async def test_templates_crud(admin: AsyncClient):
     assert data.get("data") is not None
     template_id = data["data"]["id"]
 
-    result = await admin.get(f"/templates/{template_id}/")
+    result = await admin.get(f"/templates/{template_id}")
     assert result.status_code == 200
     data = result.json()
     assert data is not None
@@ -29,37 +30,47 @@ async def test_templates_crud(admin: AsyncClient):
     assert data_to_create["description"] == template["description"]
     assert data_to_create["title"] == template["title"]
 
-    result = await admin.patch(f"/templates/{template_id}/", json={"content": "123"})
+    result = await admin.patch(f"/templates/{template_id}", json={"content": "123"})
     assert result.status_code == 200
 
-    result = await admin.get(f"/templates/{template_id}/")
+    result = await admin.get(f"/templates/{template_id}")
     data = result.json()
     template = data["data"]
     assert template["content"] == "123"
 
-    result = await admin.delete(f"/templates/{template_id}/")
+    result = await admin.delete(f"/templates/{template_id}")
     assert result.status_code == 200
 
-    result = await admin.get(f"/templates/{template_id}/")
+    result = await admin.get(f"/templates/{template_id}")
     assert result.status_code == 404
 
 
 @pytest.mark.parametrize("title, content, category_id, expected_sc, expected_count", [
-    ("Шаблон оформления заказа", "Здравствуйте, {{ username }}! Ваш заказ № {{ order_id }} успешно оформлен!", 1, 200, 1), 
-    ("Шаблон с несуществующей категорией", "Здравствуйте, {{ username }}! Ваш заказ № {{ order_id }} успешно оформлен!", 19, 404, 1), 
-    ("Шаблон с ошибкой синтаксиса", "Здравствуйте, {{ username ! Ваш заказ № {{ order_id }} успешно оформлен!", 1, 422, 1),
-    ("Шаблон приветствия", "Здравствуйте, {{ username }}!", 1, 200, 2),
+    ("", "", None, 422, 0),
+    ("Шаблон", "", None, 422, 0),
+    ("", "Шаблон", None, 422, 0),
+    ("Шаблон оформления заказа", "Здравствуйте, {{ username }}! Ваш заказ № {{ order_id }} успешно оформлен!", None, 200, 1), 
+    ("Шаблон с несуществующей категорией", "Здравствуйте, {{ username }}! Ваш заказ № {{ order_id }} успешно оформлен!", 168769, 404, 1), 
+    ("Шаблон с ошибкой синтаксиса", "Здравствуйте, {{ username ! Ваш заказ № {{ order_id }} успешно оформлен!", None, 422, 1),
+    ("Шаблон приветствия", "Здравствуйте, {{ username }}!", None, 200, 2),
 ])
-async def test_templates_operations(
+async def test_create_templates(
     title: str,
     content: str,
-    category_id: int,
+    category_id: int | None,
     expected_sc: int,
     expected_count: int,
     admin: AsyncClient
-):
+):  
+    data_to_post: dict[str, Any] = {
+        "title": title,
+        "content": content,
+    }
+    if category_id:
+        data_to_post["category_id"] = category_id
+
     result = await admin.post(
-        "/templates/", 
+        "/templates", 
         json={
             "title": title,
             "content": content,
@@ -68,7 +79,7 @@ async def test_templates_operations(
     )
     assert result.status_code == expected_sc
 
-    result = await admin.get("/templates/")
+    result = await admin.get("/templates")
     data = result.json()
     templates = data["data"]
     assert len(templates) == expected_count

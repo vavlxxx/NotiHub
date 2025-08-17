@@ -11,6 +11,7 @@ from sqlalchemy import pool
 from alembic import context
 
 from src.models import *  # noqa: F403
+from src.models.base import Base
 
 from src.settings import settings
 
