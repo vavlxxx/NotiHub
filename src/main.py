@@ -8,7 +8,8 @@ import logging.config
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import FastAPI
+from aiogram.types import Update
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
@@ -17,14 +18,14 @@ from src.utils.db_manager import DB_Manager
 from src.utils.redis_manager import redis_manager
 from src.utils.enums import UserRole
 from src.utils.exceptions import UserExistsError
-
 from src.db import sessionmaker
 from src.settings import settings
 from src.schemas.users import RequestRegisterUserDTO
 from src.services.users import UserService
+from src.bot.bot import bot, dp
 
 from src.api.templates import router as router_templates
-from api.categories import router as router_categories
+from src.api.categories import router as router_categories
 from src.api.docs import router as router_docs
 from src.api.users import router as router_users
 from src.api.channels import router as router_channels
@@ -64,9 +65,24 @@ async def lifespan(app: FastAPI):
 
     await redis_manager.connect()
     logger.info("Successfully connected to Redis")
+    
     FastAPICache.init(RedisBackend(redis_manager._redis), prefix="fastapi-cache")
     logger.info("FastAPICache initialized...")
+
+    await bot.set_webhook(
+        url=settings.TELEGRAM_WEBHOOK_URL,
+        allowed_updates=dp.resolve_used_update_types(),
+        drop_pending_updates=True,
+    )
+    await bot.send_message(chat_id=settings.TELEGRAM_ADMIN_CONTACT, text="🚀 Bot has been started...")
+    logger.info("Aiogram webhook has been set...")
+
     yield
+
+    await bot.send_message(chat_id=settings.TELEGRAM_ADMIN_CONTACT, text="🛑 Bot has been stopped...")
+    await bot.delete_webhook(drop_pending_updates=True)
+    logger.info("Aiogram webhook has been deleted...")
+
     await redis_manager.close()
     logger.info("Connection to Redis has been closed")
 
@@ -91,6 +107,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.post("/webhook", include_in_schema=False)
+async def webhook_handler(request: Request):
+    webhook_data = await request.json()
+    update = Update(**webhook_data)
+    await dp.feed_update(bot, update)
+    return {"status": "OK"}
+
+
 
 if __name__ == "__main__":
     uvicorn.run(

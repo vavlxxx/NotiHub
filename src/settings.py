@@ -36,6 +36,8 @@ class Settings:
     SMTP_PASSWORD: str
 
     TELEGRAM_BOT_TOKEN: str
+    TELEGRAM_WEBHOOK_URL: str
+    TELEGRAM_ADMIN_CONTACT: str
 
     MODE: Literal["TEST", "DEV", "PROD"]
 
@@ -78,6 +80,8 @@ class Settings:
             SMTP_PASSWORD=cls._get_env_var('SMTP_PASSWORD', to_cast=str),
          
             TELEGRAM_BOT_TOKEN=cls._get_env_var('TELEGRAM_BOT_TOKEN', to_cast=str),
+            TELEGRAM_WEBHOOK_URL=cls._get_env_var('TELEGRAM_WEBHOOK_URL', to_cast=str),
+            TELEGRAM_ADMIN_CONTACT=cls._get_env_var('TELEGRAM_ADMIN_CONTACT', to_cast=str),
 
             MODE=cls._get_env_var('MODE', to_cast=str),
         )

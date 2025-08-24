@@ -80,6 +80,9 @@ class NotiHubBaseHTTPError(HTTPException):
             exc_detail = kwargs["detail"]
         super().__init__(status_code=self.status_code, detail=exc_detail)
 
+class WebhookSetupError(NotiHubBaseHTTPError):
+    ...
+    
 class ObjectNotFoundHTTPError(NotiHubBaseHTTPError):
     status_code=404
     detail="Объект не найден"

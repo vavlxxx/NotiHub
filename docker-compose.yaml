@@ -1,0 +1,64 @@
+services:
+  notihub_api_service:
+    container_name: notihub_api
+    image: notihub_img
+    ports:
+      - "8888:8888"
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env.docker
+    networks:
+      - "notihub_net"
+    
+  notihub_celery_beat_service:
+    container_name: "notihub_celery_beat"
+    image: "notihub_img"
+    build: 
+      context: .
+      dockerfile: "Dockerfile"
+    env_file:
+      - ".env.docker"
+    networks:
+      - "notihub_net"
+    command: "poetry run celery --app=src.tasks.app:celery_app beat -l INFO"
+
+  notihub_celery_worker_service:
+    container_name: "notihub_celery_worker"
+    image: "notihub_img"
+    build: 
+      context: .
+      dockerfile: "Dockerfile"
+    env_file:
+      - ".env.docker"
+    networks:
+      - "notihub_net"
+    command: "poetry run celery --app=src.tasks.app:celery_app worker -l INFO"
+
+  notihub_cache_service:
+    container_name: "notihub_redis"
+    image: "redis"
+    ports:
+      - "7379:6379"
+    networks:
+      - "notihub_net"
+
+  notihub_db_service:
+    container_name: "notihub_postgres"
+    image: "postgres:17"
+    env_file:
+      - .env.postgresql
+    volumes:
+      - "pg_notihub_db_data:/var/lib/postgresql/data"
+    ports:
+      - "6432:5432"
+    networks:
+      - "notihub_net"
+
+volumes:
+  pg_notihub_db_data:
+
+networks:
+  notihub_net:
+    driver: bridge

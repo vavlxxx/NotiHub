@@ -41,6 +41,11 @@
             "level": "INFO",
             "propagate": false
         },
+        "aiogram": {
+            "handlers": ["stdout","main_file"],
+            "level": "INFO",
+            "propagate": false
+        },
         "fastapi": {
             "handlers": ["stdout","main_file"],
             "level": "INFO",

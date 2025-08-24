@@ -14,6 +14,7 @@ from src.bot.routers.greetings import router as router_greetings
 
 logging.basicConfig(level=logging.INFO)
 
+
 bot = Bot(
     token=settings.TELEGRAM_BOT_TOKEN,
     default=DefaultBotProperties(parse_mode='markdown')
