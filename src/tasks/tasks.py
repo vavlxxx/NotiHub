@@ -1,4 +1,3 @@
-import re
 import asyncio
 import aiohttp
 import logging
@@ -9,49 +8,10 @@ import aiosmtplib
 
 from src.tasks.app import celery_app
 from src.settings import settings
-from src.utils.db_manager import DB_Manager
-from src.db import sessionmaker_null_pool
 from src.utils.enums import ContentType, NotificationStatus
-from src.schemas.notifications import AddLogDTO, RequestAddLogDTO
-
-
-def detect_content_type(text: str) -> ContentType:
-    if not text:
-        return ContentType.PLAIN
-
-    html_tags = re.findall(r"<[^>]+>", text)
-    if html_tags:
-        valid_html_pattern = r"<(?:/?[a-zA-Z][a-zA-Z0-9]*(?:\s[^>]*)?|!--.*?--)>"
-        if re.search(valid_html_pattern, text, re.DOTALL | re.IGNORECASE):
-            return ContentType.HTML
-
-    return ContentType.PLAIN
-
-
-class NotificationLogger:
-    def __init__(
-        self,
-        log_schema: RequestAddLogDTO,
-    ):
-        self.log_schema = log_schema
-
-    async def _insert_result_into_database(self, data: AddLogDTO):
-        async with DB_Manager(session_factory=sessionmaker_null_pool) as db:
-            await db.notification_logs.add(data)
-            await db.commit()
-
-    async def log_result(
-        self,
-        status: NotificationStatus = NotificationStatus.FAILURE,
-        details: str | None = None,
-    ):
-        new_log_schema = AddLogDTO(
-            **self.log_schema.model_dump(),
-            details=details,
-            status=status,
-        )
-        logger.info("New log, after sending notification: %s", new_log_schema)
-        await self._insert_result_into_database(new_log_schema)
+from src.schemas.notifications import RequestAddLogDTO
+from src.utils.notification_helper import NotificationHelper as NH
+from src.utils.exceptions import ForbiddenHTMLTemplateError
 
 
 logger = logging.getLogger("src.tasks.tasks")
@@ -75,8 +35,14 @@ async def send_telegram_message(
     body = {"chat_id": log_schema.contact_data, "text": log_schema.message}
 
     try:
+        if NH.detect_content_type(log_schema.message) == ContentType.HTML:
+            raise ForbiddenHTMLTemplateError(
+                "HTML templates are not supported for Telegram notifications"
+            )
+
         async with aiohttp.ClientSession() as session:
             async with session.post(url=bot_message_method_url, json=body) as response:
+
                 if response.status == 200:
                     status = NotificationStatus.SUCCESS
                     logger.info(
@@ -100,7 +66,7 @@ async def send_telegram_message(
         raise exc
 
     finally:
-        await NotificationLogger(log_schema).log_result(status=status, details=details)
+        await NH(log_schema).log_result(status=status, details=details)
 
 
 async def _send_email_message(log_schema: RequestAddLogDTO):
@@ -109,7 +75,7 @@ async def _send_email_message(log_schema: RequestAddLogDTO):
     message["From"] = settings.SMTP_USER
     message["To"] = log_schema.contact_data
 
-    content_type = detect_content_type(log_schema.message)
+    content_type = NH.detect_content_type(log_schema.message)
     message.attach(MIMEText(log_schema.message, ContentType.PLAIN.value))
     if content_type == ContentType.HTML:
         message.attach(MIMEText(log_schema.message, ContentType.HTML.value))
@@ -174,7 +140,7 @@ async def send_email(
         logger.error("Unexpected error during email sending: %s", exc)
         raise
 
-    await NotificationLogger(log_schema).log_result(status=status, details=details)
+    await NH(log_schema).log_result(status=status, details=details)
 
 
 @celery_app.task(name="send_push")
@@ -192,6 +158,11 @@ async def send_push(
     headers = {"Title": settings.APP_NAME, "Content-Type": "text/plain; charset=utf-8"}
 
     try:
+        if NH.detect_content_type(log_schema.message) == ContentType.HTML:
+            raise ForbiddenHTMLTemplateError(
+                "HTML templates are not supported for Push notifications"
+            )
+
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 url=ntfy_url_with_topic,
@@ -218,4 +189,4 @@ async def send_push(
         raise exc
 
     finally:
-        await NotificationLogger(log_schema).log_result(status=status, details=details)
+        await NH(log_schema).log_result(status=status, details=details)

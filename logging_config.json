@@ -65,26 +65,6 @@
             "handlers": ["stdout","celery_file"],
             "level": "INFO",
             "propagate": false
-        },
-        "celery.task": {
-            "handlers": ["stdout","celery_file"],
-            "level": "INFO",
-            "propagate": false
-        },
-        "celery.worker": {
-            "handlers": ["stdout","celery_file"],
-            "level": "INFO",
-            "propagate": false
-        },
-        "celery.beat": {
-            "handlers": ["stdout","celery_file"],
-            "level": "INFO",
-            "propagate": false
-        },
-        "celery.redirected": {
-            "handlers": ["stdout","celery_file"],
-            "level": "INFO",
-            "propagate": false
         }
     },
     "formatters": {

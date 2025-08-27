@@ -8,7 +8,7 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
-import alembic_postgresql_enum
+import alembic_postgresql_enum  # noqa: F401
 
 from alembic import context
 
