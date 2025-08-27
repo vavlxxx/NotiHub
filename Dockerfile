@@ -2,9 +2,9 @@ FROM python:3.11.9
 
 WORKDIR /app
 
-COPY pyproject.toml poetry.lock ./
 RUN pip install poetry
 ENV PATH="/root/.local/bin:$PATH"
+COPY pyproject.toml poetry.lock ./
 RUN poetry install --no-root --no-interaction --no-cache
 
 COPY . .

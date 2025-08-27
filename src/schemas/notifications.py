@@ -5,11 +5,7 @@ from pydantic import FutureDatetime, model_validator
 
 from src.schemas.channels import ChannelDTO
 from src.schemas.base import BaseDTO
-from src.utils.enums import (
-    ContactChannelType, 
-    NotificationStatus,
-    ScheduleType
-)
+from src.utils.enums import ContactChannelType, NotificationStatus, ScheduleType
 
 
 class RequestAddLogDTO(BaseDTO):
@@ -20,11 +16,12 @@ class RequestAddLogDTO(BaseDTO):
 
 class AddLogDTO(RequestAddLogDTO):
     status: NotificationStatus = NotificationStatus.FAILURE
-    provider_response: str | None = None
+    details: str | None = None
+
 
 class LogDTO(AddLogDTO):
     id: int
-    delivered_at : datetime
+    delivered_at: datetime
 
 
 class _ScheduleDTO(BaseDTO):
@@ -33,20 +30,24 @@ class _ScheduleDTO(BaseDTO):
     crontab: str | None = None
     max_executions: int = 0
 
-    @model_validator(mode='after')
-    def validate_schedule_fields(self) -> '_ScheduleDTO':
+    @model_validator(mode="after")
+    def validate_schedule_fields(self) -> "_ScheduleDTO":
         if self.schedule_type == ScheduleType.ONCE:
             if self.max_executions > 0:
-                raise ValueError("'max_executions' makes no sense for 'ONCE' notifications")
+                raise ValueError(
+                    "'max_executions' makes no sense for 'ONCE' notifications"
+                )
             if self.crontab:
                 raise ValueError("crontab makes no sense for 'ONCE' notifications")
-                
+
         elif self.schedule_type == ScheduleType.RECURRING:
             if self.max_executions:
-                raise ValueError("'max_executions' must be greater than 0 for 'RECURRING' notifications")
+                raise ValueError(
+                    "'max_executions' must be greater than 0 for 'RECURRING' notifications"
+                )
             if not self.crontab:
                 raise ValueError("crontab is required for 'RECURRING' notifications")
-            
+
             if self.crontab:
                 try:
                     croniter(self.crontab)
@@ -54,19 +55,22 @@ class _ScheduleDTO(BaseDTO):
                     raise ValueError("Invalid crontab expression")
         return self
 
+
 class NotificationMassSendDTO(_ScheduleDTO):
     template_id: int
     variables: dict[str, str]
 
+
 class NotificationSendDTO(NotificationMassSendDTO):
     channels_ids: list[int]
+
 
 class AddScheduleDTO(_ScheduleDTO):
     message: str
     channel_id: int
     scheduled_at: datetime | None = None
     next_execution_at: datetime | None = None
-    
+
 
 class ScheduleDTO(AddScheduleDTO):
     id: int
@@ -74,6 +78,7 @@ class ScheduleDTO(AddScheduleDTO):
     updated_at: datetime
     last_executed_at: datetime | None = None
     current_executions: int
+
 
 class UpdateScheduleDTO(BaseDTO):
     last_executed_at: datetime | None = None
@@ -83,4 +88,3 @@ class UpdateScheduleDTO(BaseDTO):
 
 class ScheduleWithChannelsDTO(ScheduleDTO):
     channel: ChannelDTO
-    

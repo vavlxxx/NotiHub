@@ -33,6 +33,7 @@ dependencies = [
     "pytest-dotenv (>=0.5.2,<0.6.0)",
     "pydantic[email] (>=2.11.7,<3.0.0)",
     "aiogram (>=3.21.0,<4.0.0)",
+    "alembic-postgresql-enum (>=1.8.0,<2.0.0)",
 ]
 
 
