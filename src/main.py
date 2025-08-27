@@ -1,6 +1,7 @@
 import os
 import sys
 from pathlib import Path
+
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import json
@@ -54,9 +55,9 @@ async def lifespan(app: FastAPI):
         try:
             await UserService(db).add_user(
                 RequestRegisterUserDTO(
-                    username=settings.DB_ADMIN_LOGIN, 
+                    username=settings.DB_ADMIN_LOGIN,
                     password=settings.DB_ADMIN_PASSWORD,
-                    role=UserRole.ADMIN
+                    role=UserRole.ADMIN,
                 )
             )
             logger.info("Added admin user")
@@ -65,7 +66,7 @@ async def lifespan(app: FastAPI):
 
     await redis_manager.connect()
     logger.info("Successfully connected to Redis")
-    
+
     FastAPICache.init(RedisBackend(redis_manager._redis), prefix="fastapi-cache")
     logger.info("FastAPICache initialized...")
 
@@ -74,25 +75,25 @@ async def lifespan(app: FastAPI):
         allowed_updates=dp.resolve_used_update_types(),
         drop_pending_updates=True,
     )
-    await bot.send_message(chat_id=settings.TELEGRAM_ADMIN_CONTACT, text="🚀 Bot has been started...")
+    await bot.send_message(
+        chat_id=settings.TELEGRAM_ADMIN_CONTACT, text="🚀 Bot has been started..."
+    )
     logger.info("Aiogram webhook has been set...")
 
     yield
 
-    await bot.send_message(chat_id=settings.TELEGRAM_ADMIN_CONTACT, text="🛑 Bot has been stopped...")
+    await bot.send_message(
+        chat_id=settings.TELEGRAM_ADMIN_CONTACT, text="🛑 Bot has been stopped..."
+    )
     await bot.delete_webhook(drop_pending_updates=True)
     logger.info("Aiogram webhook has been deleted...")
+    await bot.session.close()
 
     await redis_manager.close()
     logger.info("Connection to Redis has been closed")
 
 
-app = FastAPI(
-    title=settings.APP_NAME, 
-    lifespan=lifespan,
-    docs_url=None, 
-    redoc_url=None
-)
+app = FastAPI(title=settings.APP_NAME, lifespan=lifespan, docs_url=None, redoc_url=None)
 app.include_router(router=router_docs)
 app.include_router(router=router_templates)
 app.include_router(router=router_categories)
@@ -117,11 +118,7 @@ async def webhook_handler(request: Request):
     return {"status": "OK"}
 
 
-
 if __name__ == "__main__":
     uvicorn.run(
-        "main:app",
-        reload=True,
-        host=settings.UVICORN_HOST, 
-        port=settings.UVICORN_PORT
+        "main:app", reload=True, host=settings.UVICORN_HOST, port=settings.UVICORN_PORT
     )

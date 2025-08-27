@@ -36,9 +36,7 @@ async def send_telegram_message(
 
     try:
         if NH.detect_content_type(log_schema.message) == ContentType.HTML:
-            raise ForbiddenHTMLTemplateError(
-                "HTML templates are not supported for Telegram notifications"
-            )
+            raise ForbiddenHTMLTemplateError
 
         async with aiohttp.ClientSession() as session:
             async with session.post(url=bot_message_method_url, json=body) as response:
@@ -58,8 +56,10 @@ async def send_telegram_message(
                     log_schema.contact_data,
                     details,
                 )
-                raise Exception(details)
 
+    except ForbiddenHTMLTemplateError as exc:
+        details = f"HTML templates are not supported for Telegram notifications"
+        logger.error(details)
     except Exception as exc:
         details = f"Unexpected Error: {str(exc)}"
         logger.error("Unexpected error during telegram notification sending: %s", exc)
@@ -95,45 +95,57 @@ async def _send_email_message(log_schema: RequestAddLogDTO):
     return response
 
 
-@celery_app.task(name="send_to_email", default_retry_delay=10, max_retries=3)
-def send_email_notification(log_data: dict):
+@celery_app.task(
+    bind=True,
+    max_retries=3,
+    name="send_to_email",
+    default_retry_delay=10,
+)
+def send_email_notification(self, log_data: dict):
     log_schema = RequestAddLogDTO(**log_data)
-    asyncio.run(send_email(log_schema))
+    asyncio.run(send_email(self, log_schema))
 
 
 async def send_email(
+    self,
     log_schema: RequestAddLogDTO,
     status: NotificationStatus = NotificationStatus.FAILURE,
     details: str | None = None,
 ):
     try:
-        asyncio.run(_send_email_message(log_schema))
+        await _send_email_message(log_schema)
         logger.info("Successfully sent email message to: %s", log_schema.contact_data)
         status = NotificationStatus.SUCCESS
 
     except aiosmtplib.SMTPAuthenticationError as exc:
         details = f"Auth Error: {exc}"
         logger.error("Failed authentication to SMTP server: %s", exc)
+        raise self.retry(exc=exc, countdown=self.request.retries * 2)
 
     except aiosmtplib.SMTPRecipientsRefused as exc:
         details = f"Recipients Refused: {exc}"
         logger.error("Failed to send email to recipients: %s", exc)
+        raise self.retry(exc=exc, countdown=self.request.retries * 2)
 
     except aiosmtplib.SMTPConnectError as exc:
         details = f"SMTP Connect Error: {exc}"
         logger.error("Failed to connect to the SMTP server: %s", exc)
+        raise self.retry(exc=exc, countdown=self.request.retries * 2)
 
     except aiosmtplib.SMTPServerDisconnected as exc:
         details = f"Server Disconnected: {exc}"
         logger.error("Server disconnected: %s", exc)
+        raise self.retry(exc=exc, countdown=self.request.retries * 2)
 
     except TimeoutError as exc:
         details = f"Timeout Error: {exc}"
         logger.error("Time for connection is out: %s", exc)
+        raise self.retry(exc=exc, countdown=self.request.retries * 2)
 
     except ConnectionAbortedError as exc:
         details = f"Connection Aborted: {exc}"
         logger.error("Connection to SMTP was aborted: %s", exc)
+        raise self.retry(exc=exc, countdown=self.request.retries * 2)
 
     except Exception as exc:
         details = f"Unexpected Error: {exc}"
@@ -159,9 +171,7 @@ async def send_push(
 
     try:
         if NH.detect_content_type(log_schema.message) == ContentType.HTML:
-            raise ForbiddenHTMLTemplateError(
-                "HTML templates are not supported for Push notifications"
-            )
+            raise ForbiddenHTMLTemplateError
 
         async with aiohttp.ClientSession() as session:
             async with session.post(
@@ -183,6 +193,9 @@ async def send_push(
                     ntfy_url_with_topic,
                 )
 
+    except ForbiddenHTMLTemplateError as exc:
+        details = f"HTML templates are not supported for Push notifications"
+        logger.error(details)
     except Exception as exc:
         details = f"Unexpected Error: {str(exc)}"
         logger.error("Unexpected error during email sending: %s", exc)

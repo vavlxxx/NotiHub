@@ -31,6 +31,8 @@ from src.schemas.notifications import (
 from src.utils.exceptions import (
     ChannelNotFoundError,
     ForbiddenHTMLTemplateError,
+    ObjectExistsError,
+    ScheduleAlreadyExistsError,
     ScheduleNotFoundError,
     MissingTemplateVariablesError,
     ObjectNotFoundError,
@@ -94,15 +96,13 @@ class NotificationService(BaseService):
     def _calculate_next_execution_time(
         self, data: NotificationSendDTO | NotificationMassSendDTO
     ) -> datetime | FutureDatetime | None:
-        if data.schedule_type == ScheduleType.ONCE:
+        if data.scheduled_at:
             return data.scheduled_at
 
         now = datetime.now(timezone.utc)
-        start_time = data.scheduled_at or now
         if data.crontab:
-            cron = croniter(data.crontab, start_time)
-            next_time = cron.get_next(datetime)
-            return next_time
+            cron = croniter(data.crontab, now)
+            return cron.get_next(datetime)
 
         return None
 
@@ -118,7 +118,18 @@ class NotificationService(BaseService):
             data=data, user_meta=user_meta
         )
 
+        results = {"ready_to_send": 0, "scheduled": 0}
+        schedule = []
         for channel in channels:
+            if (
+                (type(data) is not NotificationMassSendDTO)
+                and (channel.channel_type != ContactChannelType.EMAIL)
+                and (template_type == ContentType.HTML)
+            ):
+                raise ForbiddenHTMLTemplateError(
+                    detail=f"HTML-шаблон не поддерживается каналом: {channel.channel_type.value}"
+                )
+
             if data.schedule_type == ScheduleType.ONCE and data.scheduled_at is None:
                 ready_to_send = RequestAddLogDTO(
                     message=msg,
@@ -131,6 +142,7 @@ class NotificationService(BaseService):
                     ready_to_send,
                 )
                 CELERY_TASKS[channel.channel_type].delay(ready_to_send.model_dump())
+                results["ready_to_send"] += 1
                 continue
 
             scheduled_notification = AddScheduleDTO(
@@ -142,15 +154,19 @@ class NotificationService(BaseService):
                 next_execution_at=self._calculate_next_execution_time(data),
                 schedule_type=data.schedule_type,
             )
-            await self.db.schedules.add(scheduled_notification)
+            schedule.append(scheduled_notification)
             logger.info(
                 "Prepared and scheduled for %s channel new notification: %s",
                 channel.channel_type,
                 scheduled_notification,
             )
 
+        if schedule:
+            await self.db.schedules.add_bulk_schedules(schedule)
+            results["scheduled"] = len(schedule)
+
         await self.db.commit()
-        return {"total_count": len(channels)}
+        return results
 
     async def get_report(self, date_begin: datetime | None, date_end: datetime | None):
         report_schema = {}

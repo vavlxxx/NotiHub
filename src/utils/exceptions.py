@@ -40,6 +40,10 @@ class ScheduleNotFoundError(ObjectNotFoundError):
     pass
 
 
+class ScheduleAlreadyExistsError(NotiHubBaseError):
+    pass
+
+
 class ObjectExistsError(NotiHubBaseError):
     pass
 
@@ -213,6 +217,16 @@ class ScheduleNotFoundHTTPError(ObjectNotFoundHTTPError):
     detail = "Расписание не найдено"
 
 
+class ScheduleAlreadyExistsHTTPError(ObjectExistsHTTPError):
+    status_code = 409
+    detail = "Расписание уже существует"
+
+
 class InvalidDatetimeRangeHTTPError(NotiHubBaseHTTPError):
     status_code = 422
     detail = "Неверный диапазон даты и времени"
+
+
+class ForbiddenHTMLTemplateHTTPError(NotiHubBaseHTTPError):
+    status_code = 422
+    detail = "Шаблон HTML запрещен"

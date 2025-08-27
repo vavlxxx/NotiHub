@@ -1,4 +1,4 @@
-#ruff: noqa: E402, F403
+# ruff: noqa: E402, F403
 from typing import AsyncGenerator
 
 from unittest import mock
@@ -20,16 +20,28 @@ from src.services.users import UserService
 from src.models import *
 from src.models.base import Base
 
+
 ###
 async def get_db_with_null_pool() -> AsyncGenerator[DB_Manager, None]:
     async with DB_Manager(session_factory=sessionmaker_null_pool) as db:
         yield db
+
+
 app.dependency_overrides[get_db] = get_db_with_null_pool
+
 
 @pytest.fixture()
 async def db():
     async for db in get_db_with_null_pool():
         yield db
+
+
+@pytest.fixture(scope="module")
+async def db_module():
+    async for db in get_db_with_null_pool():
+        yield db
+
+
 ###
 
 
@@ -37,6 +49,7 @@ async def db():
 async def check_test_mode():
     assert settings.MODE == "TEST"
     assert settings.DB_NAME == "test_notihub_db"
+
 
 @pytest.fixture(scope="session", autouse=True)
 async def main(check_test_mode):
@@ -49,9 +62,9 @@ async def main(check_test_mode):
 
         await UserService(db).add_user(
             RequestRegisterUserDTO(
-                username=settings.DB_ADMIN_LOGIN, 
+                username=settings.DB_ADMIN_LOGIN,
                 password=settings.DB_ADMIN_PASSWORD,
-                role=UserRole.ADMIN
+                role=UserRole.ADMIN,
             )
         )
 
@@ -64,18 +77,18 @@ async def admin() -> AsyncGenerator[AsyncClient, None]:
             "/auth/login",
             json={
                 "username": settings.DB_ADMIN_LOGIN,
-                "password": settings.DB_ADMIN_PASSWORD
+                "password": settings.DB_ADMIN_PASSWORD,
             },
         )
         assert resp
         assert resp.status_code == 200
         assert isinstance(resp.json(), dict)
-        
+
         data = resp.json()
         access_token = data.get("access_token")
         decoded_token = UserService.decode_access_token(access_token=access_token)
         assert decoded_token.get("is_admin", True)
-        
+
         assert access_token is not None
         cookies_token = client.cookies.get("access_token")
         assert cookies_token is not None
@@ -89,19 +102,13 @@ async def ac() -> AsyncGenerator[AsyncClient, None]:
     async with AsyncClient(transport=app_, base_url="http://test") as client:
         resp = await client.post(
             "/auth/register",
-            json={
-                "username": "ivan_petrov",
-                "password": "SecurePass123!"
-            }
+            json={"username": "ivan_petrov", "password": "SecurePass123!"},
         )
         assert resp and resp.status_code == 200
 
         resp = await client.post(
             "/auth/login",
-            json={
-                "username": "ivan_petrov",
-                "password": "SecurePass123!"
-            }
+            json={"username": "ivan_petrov", "password": "SecurePass123!"},
         )
         assert resp and resp.status_code == 200
         data = resp.json()
@@ -109,10 +116,10 @@ async def ac() -> AsyncGenerator[AsyncClient, None]:
         cookies_token = client.cookies.get("access_token")
         assert access_token and cookies_token
         assert cookies_token == access_token
-        
+
         decoded_token = UserService.decode_access_token(access_token=access_token)
         assert not decoded_token.get("is_admin")
-        
+
         yield client
 
 
@@ -125,4 +132,3 @@ async def celery_eager():
         broker_url="memory://",
         result_backend="cache+memory://",
     )
-

@@ -28,7 +28,12 @@ class BaseRepository(Generic[ModelType]):
 
     async def get_all_filtered(self, *filter, **filter_by) -> list[BaseDTO | Any]:
         query = select(self.model).filter(*filter).filter_by(**filter_by)
-        result = await self.session.execute(query)
+        try:
+            result = await self.session.execute(query)
+        except DBAPIError as exc:
+            if isinstance(exc.orig.__cause__, DataError):  # type: ignore
+                raise ValueOutOfRangeError(detail=exc.orig.__cause__.args[0]) from exc  # type: ignore
+            raise exc
         return [self.schema.model_validate(obj) for obj in result.scalars().all()]
 
     async def get_all(self) -> list[BaseDTO]:
@@ -36,8 +41,14 @@ class BaseRepository(Generic[ModelType]):
 
     async def get_one_or_none(self, *filter, **filter_by) -> BaseDTO | None | Any:
         query = select(self.model).filter(*filter).filter_by(**filter_by)
-        result = await self.session.execute(query)
-        obj = result.scalars().one_or_none()
+        try:
+            result = await self.session.execute(query)
+            obj = result.scalars().one_or_none()
+        except DBAPIError as exc:
+            if isinstance(exc.orig.__cause__, DataError):  # type: ignore
+                raise ValueOutOfRangeError(detail=exc.orig.__cause__.args[0]) from exc  # type: ignore
+            raise exc
+
         if obj is None:
             return None
         return self.schema.model_validate(obj)
@@ -106,10 +117,22 @@ class BaseRepository(Generic[ModelType]):
             if isinstance(exc.orig.__cause__, UniqueViolationError):  # type: ignore
                 raise ObjectExistsError from exc
             raise exc
+        except DBAPIError as exc:
+            if isinstance(exc.orig.__cause__, DataError):  # type: ignore
+                raise ValueOutOfRangeError(detail=exc.orig.__cause__.args[0]) from exc  # type: ignore
+            raise exc
 
     async def delete(self, ensure_existence=True, *filter, **filter_by):
         delete_obj_stmt = delete(self.model).filter(*filter).filter_by(**filter_by)
-        result = await self.session.execute(delete_obj_stmt)
+        try:
+            result = await self.session.execute(delete_obj_stmt)
+        except DBAPIError as exc:
+            if isinstance(exc.orig.__cause__, DataError):  # type: ignore
+                raise ValueOutOfRangeError(detail=exc.orig.__cause__.args[0]) from exc  # type: ignore
+            raise exc
 
         if ensure_existence and result.rowcount == 0:
             raise ObjectNotFoundError
+
+    async def delete_all(self):
+        await self.delete()

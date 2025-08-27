@@ -7,11 +7,12 @@ from src.repos.channels import ChannelRepository
 from src.repos.notifications import NotificationLogRepository
 from src.repos.scheudles import ScheduleRepository
 
+
 class DB_Manager:
-    
+
     def __init__(self, session_factory):
         self.session_factory = session_factory
-    
+
     async def __aenter__(self):
         self.session = self.session_factory()
         self.templates = TemplateRepository(self.session)
@@ -25,7 +26,7 @@ class DB_Manager:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.rollback()
         await self.session.close()
-    
+
     async def check_connection(self):
         await self.session.execute(text("SELECT 1;"))
 

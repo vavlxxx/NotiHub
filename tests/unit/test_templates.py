@@ -7,7 +7,7 @@ async def test_templates_crud(admin: AsyncClient):
     data_to_create = {
         "title": "Подтверждение заказа",
         "content": "Здравствуйте, {{ username }}! Ваш заказ № {{ order_id }} успешно оформлен!",
-        "description": "Текстовый шаблон для подтверждения заказа в интернет-магазине"
+        "description": "Текстовый шаблон для подтверждения заказа в интернет-магазине",
     }
     result = await admin.post("/templates", json=data_to_create)
 
@@ -45,23 +45,51 @@ async def test_templates_crud(admin: AsyncClient):
     assert result.status_code == 404
 
 
-@pytest.mark.parametrize("title, content, category_id, expected_sc, expected_count", [
-    ("", "", None, 422, 0),
-    ("Шаблон", "", None, 422, 0),
-    ("", "Шаблон", None, 422, 0),
-    ("Шаблон оформления заказа", "Здравствуйте, {{ username }}! Ваш заказ № {{ order_id }} успешно оформлен!", None, 200, 1), 
-    ("Шаблон с несуществующей категорией", "Здравствуйте, {{ username }}! Ваш заказ № {{ order_id }} успешно оформлен!", 168769, 404, 1), 
-    ("Шаблон с ошибкой синтаксиса", "Здравствуйте, {{ username ! Ваш заказ № {{ order_id }} успешно оформлен!", None, 422, 1),
-    ("Шаблон приветствия", "Здравствуйте, {{ username }}!", None, 200, 2),
-])
+@pytest.fixture(scope="module")
+async def prepare_templates(db_module):
+    await db_module.templates.delete(ensure_existence=False)
+    await db_module.commit()
+
+
+@pytest.mark.parametrize(
+    "title, content, category_id, expected_sc, expected_count",
+    [
+        ("", "", None, 422, 0),
+        ("Шаблон", "", None, 422, 0),
+        ("", "Шаблон", None, 422, 0),
+        (
+            "Шаблон оформления заказа",
+            "Здравствуйте, {{ username }}! Ваш заказ № {{ order_id }} успешно оформлен!",
+            None,
+            200,
+            1,
+        ),
+        (
+            "Шаблон с несуществующей категорией",
+            "Здравствуйте, {{ username }}! Ваш заказ № {{ order_id }} успешно оформлен!",
+            168769,
+            404,
+            1,
+        ),
+        (
+            "Шаблон с ошибкой синтаксиса",
+            "Здравствуйте, {{ username ! Ваш заказ № {{ order_id }} успешно оформлен!",
+            None,
+            422,
+            1,
+        ),
+        ("Шаблон приветствия", "Здравствуйте, {{ username }}!", None, 200, 2),
+    ],
+)
 async def test_create_templates(
     title: str,
     content: str,
     category_id: int | None,
     expected_sc: int,
     expected_count: int,
-    admin: AsyncClient
-):  
+    admin: AsyncClient,
+    prepare_templates,
+):
     data_to_post: dict[str, Any] = {
         "title": title,
         "content": content,
@@ -70,12 +98,8 @@ async def test_create_templates(
         data_to_post["category_id"] = category_id
 
     result = await admin.post(
-        "/templates", 
-        json={
-            "title": title,
-            "content": content,
-            "category_id": category_id
-        }
+        "/templates",
+        json={"title": title, "content": content, "category_id": category_id},
     )
     assert result.status_code == expected_sc
 
@@ -83,3 +107,23 @@ async def test_create_templates(
     data = result.json()
     templates = data["data"]
     assert len(templates) == expected_count
+
+
+async def test_int32_out_of_range(admin: AsyncClient):
+    goofy_params = {
+        "category_id": 34343343443343434433434334344334343443,
+        "limit": 15,
+        "offset": 34343343443343434433434334344334343443,
+    }
+    result = await admin.get("/templates", params=goofy_params)
+    assert result.status_code == 422
+
+    result = await admin.get("/templates/21474834433443343648")
+    assert result.status_code == 422
+
+    data_to_update = {"title": "Шаблончик 1"}
+    result = await admin.patch("/templates/99999999999999999999", json=data_to_update)
+    assert result.status_code == 422
+
+    await admin.delete("/templates/99999999999999999999")
+    assert result.status_code == 422

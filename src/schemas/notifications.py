@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from croniter import croniter
-from pydantic import FutureDatetime, model_validator
+from pydantic import Field, FutureDatetime, model_validator
 
 from src.schemas.channels import ChannelDTO
 from src.schemas.base import BaseDTO
@@ -28,7 +28,7 @@ class _ScheduleDTO(BaseDTO):
     schedule_type: ScheduleType = ScheduleType.ONCE
     scheduled_at: FutureDatetime | None = None
     crontab: str | None = None
-    max_executions: int = 0
+    max_executions: int = Field(default=0, ge=0)
 
     @model_validator(mode="after")
     def validate_schedule_fields(self) -> "_ScheduleDTO":
@@ -41,7 +41,7 @@ class _ScheduleDTO(BaseDTO):
                 raise ValueError("crontab makes no sense for 'ONCE' notifications")
 
         elif self.schedule_type == ScheduleType.RECURRING:
-            if self.max_executions:
+            if self.max_executions < 0:
                 raise ValueError(
                     "'max_executions' must be greater than 0 for 'RECURRING' notifications"
                 )

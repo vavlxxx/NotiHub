@@ -1,8 +1,11 @@
 from sqlalchemy import select
+from sqlalchemy.exc import DBAPIError
+from asyncpg import DataError
 
 from src.repos.base import BaseRepository
 from src.schemas.channels import ChannelDTO
 from src.models.users import UserContactChannel
+from src.utils.exceptions import ValueOutOfRangeError
 
 
 class ChannelRepository(BaseRepository):
@@ -18,5 +21,10 @@ class ChannelRepository(BaseRepository):
             )
             .filter_by(**filter_by)
         )
-        result = await self.session.execute(query)
+        try:
+            result = await self.session.execute(query)
+        except DBAPIError as exc:
+            if isinstance(exc.orig.__cause__, DataError):  # type: ignore
+                raise ValueOutOfRangeError(detail=exc.orig.__cause__.args[0]) from exc  # type: ignore
+            raise exc
         return result.scalars().all()

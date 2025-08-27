@@ -38,13 +38,16 @@ async def get_templates_list(
     user_meta: UserMetaDep,
     template_filtration: TemplateFiltrationDep,
 ):
-    total_count, templates = await TemplateService(db).get_templates_list(
-        limit=pagination.limit,
-        offset=pagination.offset,
-        category_id=template_filtration.category_id,
-        user_meta=user_meta,
-        only_mine=template_filtration.only_mine,
-    )
+    try:
+        total_count, templates = await TemplateService(db).get_templates_list(
+            limit=pagination.limit,
+            offset=pagination.offset,
+            category_id=template_filtration.category_id,
+            user_meta=user_meta,
+            only_mine=template_filtration.only_mine,
+        )
+    except ValueOutOfRangeError as exc:
+        raise ValueOutOfRangeHTTPError(detail=exc.detail) from exc
 
     return {
         "page": pagination.page,
@@ -70,7 +73,11 @@ async def get_template(
     return {"status": "OK", "data": template}
 
 
-@router.post("", summary="Добавить шаблон", dependencies=[Depends(only_staff)])
+@router.post(
+    "",
+    summary="Добавить шаблон | Только для персонала",
+    dependencies=[Depends(only_staff)],
+)
 async def add_template(
     db: DBDep,
     user_meta: UserMetaDep,
@@ -92,7 +99,9 @@ async def add_template(
 
 
 @router.patch(
-    "/{template_id}", summary="Обновить шаблон", dependencies=[Depends(only_staff)]
+    "/{template_id}",
+    summary="Обновить шаблон | Только для персонала",
+    dependencies=[Depends(only_staff)],
 )
 async def update_template(
     db: DBDep,
@@ -118,7 +127,9 @@ async def update_template(
 
 
 @router.delete(
-    "/{template_id}", summary="Удалить шаблон", dependencies=[Depends(only_staff)]
+    "/{template_id}",
+    summary="Удалить шаблон | Только для персонала",
+    dependencies=[Depends(only_staff)],
 )
 async def delete_template(
     db: DBDep,
