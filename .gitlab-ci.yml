@@ -27,7 +27,7 @@ format-job:
 typing-job:
   stage: lint_format_typing_check
   script:
-    - docker run --rm --network notihub_net notihub_img poetry run  pyright
+    - docker run --rm --network notihub_net notihub_img poetry run pyright
 
 migrations-job:
   stage: migrations
@@ -37,7 +37,7 @@ migrations-job:
 tests-job:
   stage: tests
   script:
-    - docker run --rm --network notihub_net notihub_img poetry run pytest
+    - docker run --rm --network notihub_net notihub_img poetry run pytest -s -v
 
 deploy-job:
   stage: deploy
