@@ -8,14 +8,17 @@ class RequestAddTemplateDTO(BaseDTO):
     category_id: int | None = None
     description: str | None = None
 
+
 class AddTemplateDTO(RequestAddTemplateDTO):
     user_id: int
+
 
 class TemplateUpdateDTO(BaseDTO):
     title: str | None = None
     content: str | None = None
     category_id: int | None = None
     description: str | None = None
+
 
 class TemplateDTO(BaseDTO):
     id: int

@@ -8,23 +8,23 @@ from src.dependencies.db import DBDep
 from src.services.channels import ChannelService
 
 from src.utils.exceptions import (
-    ChannelExistsError, 
+    ChannelExistsError,
     ChannelExistsHTTPError,
     ChannelInUseError,
-    ChannelInUseHTTPError, 
+    ChannelInUseHTTPError,
     ChannelNotFoundError,
     ChannelNotFoundHTTPError,
     ChannelValidationError,
     ChannelValidationHTTPError,
     ValueOutOfRangeError,
-    ValueOutOfRangeHTTPError
+    ValueOutOfRangeHTTPError,
 )
 
 
 router = APIRouter(
     prefix="/channels",
     tags=["Управление контактными каналами пользователей"],
-    dependencies=[Depends(auth_required)]
+    dependencies=[Depends(auth_required)],
 )
 
 
@@ -32,26 +32,30 @@ router = APIRouter(
 async def add_channel(
     db: DBDep,
     user_meta: UserMetaDep,
-    data: RequestAddChannelDTO = Body(description="Данные о контактном канале", openapi_examples=EXAMPLE_CHANNELS)
-):  
+    data: RequestAddChannelDTO = Body(
+        description="Данные о контактном канале", openapi_examples=EXAMPLE_CHANNELS
+    ),
+):
     try:
         channel = await ChannelService(db).add_channel(data=data, user_meta=user_meta)
     except ChannelExistsError as exc:
         raise ChannelExistsHTTPError from exc
-    return {
-        "data": channel
-    }
+    return {"data": channel}
 
 
 @router.patch("/{channel_id}", summary="Обновить канал")
 async def update_channel(
     db: DBDep,
     user_meta: UserMetaDep,
-    data: UpdateChannelDTO = Body(description="Данные о контактном канале", openapi_examples=EXAMPLE_CHANNELS),
-    channel_id: int = Path(description="ID канала") # type: ignore
+    data: UpdateChannelDTO = Body(
+        description="Данные о контактном канале", openapi_examples=EXAMPLE_CHANNELS
+    ),
+    channel_id: int = Path(description="ID канала"),  # type: ignore
 ):
     try:
-        await ChannelService(db).update_channel(data=data, channel_id=channel_id, user_meta=user_meta)
+        await ChannelService(db).update_channel(
+            data=data, channel_id=channel_id, user_meta=user_meta
+        )
     except ChannelNotFoundError as exc:
         raise ChannelNotFoundHTTPError from exc
     except ChannelExistsError as exc:
@@ -62,25 +66,23 @@ async def update_channel(
         raise ChannelInUseHTTPError(detail=exc.detail) from exc
     except ValueOutOfRangeError as exc:
         raise ValueOutOfRangeHTTPError(detail=exc.detail) from exc
-    return {
-        "status": "OK"
-    }
+    return {"status": "OK"}
 
 
 @router.delete("/{channel_id}", summary="Удалить канал")
 async def delete_channel(
     db: DBDep,
     user_meta: UserMetaDep,
-    channel_id: int = Path(description="ID канала") # type: ignore
+    channel_id: int = Path(description="ID канала"),  # type: ignore
 ):
     try:
-        await ChannelService(db).delete_channel(channel_id=channel_id, user_meta=user_meta)
+        await ChannelService(db).delete_channel(
+            channel_id=channel_id, user_meta=user_meta
+        )
     except ChannelNotFoundError as exc:
         raise ChannelNotFoundHTTPError from exc
     except ChannelInUseError as exc:
         raise ChannelInUseHTTPError(detail=exc.detail) from exc
     except ValueOutOfRangeError as exc:
         raise ValueOutOfRangeHTTPError(detail=exc.detail) from exc
-    return {
-        "status": "OK"
-    }
+    return {"status": "OK"}

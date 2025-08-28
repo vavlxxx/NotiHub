@@ -28,11 +28,12 @@ def get_user_meta_from_request(access_token: str = Depends(get_access_token)):
     data = {}
     if access_token is not None:
         data = UserService.decode_access_token(access_token=access_token)
-    
+
     user_meta = {
         "user_id": data.get("user_id", 0),
         "is_admin": data.get("is_admin", False),
     }
     return user_meta
+
 
 UserMetaDep = Annotated[dict, Depends(get_user_meta_from_request)]

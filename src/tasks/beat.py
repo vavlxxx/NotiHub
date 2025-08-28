@@ -10,9 +10,9 @@ from src.utils.db_manager import DB_Manager
 from src.db import sessionmaker_null_pool
 from src.utils.enums import ScheduleType
 from src.schemas.notifications import (
-    RequestAddLogDTO, 
-    UpdateScheduleDTO, 
-    ScheduleWithChannelsDTO
+    RequestAddLogDTO,
+    UpdateScheduleDTO,
+    ScheduleWithChannelsDTO,
 )
 
 
@@ -33,36 +33,48 @@ async def _process_scheduled_notifications():
                 RequestAddLogDTO(
                     message=schedule.message,
                     contact_data=schedule.channel.contact_value,
-                    provider_name=schedule.channel.channel_type
+                    provider_name=schedule.channel.channel_type,
                 ).model_dump()
             )
             await _update_schedule_after_execution(db, schedule)
         await db.commit()
 
 
-async def _update_schedule_after_execution(db: DB_Manager, schedule: ScheduleWithChannelsDTO):
+async def _update_schedule_after_execution(
+    db: DB_Manager, schedule: ScheduleWithChannelsDTO
+):
     next_execution_time = schedule.scheduled_at
     new_executions_count = schedule.current_executions + 1
-    
-    if ((new_executions_count >= schedule.max_executions) and 
-        ((schedule.schedule_type == ScheduleType.ONCE) or 
-         (schedule.schedule_type == ScheduleType.RECURRING and schedule.max_executions != 0))):
+
+    if (new_executions_count >= schedule.max_executions) and (
+        (schedule.schedule_type == ScheduleType.ONCE)
+        or (
+            schedule.schedule_type == ScheduleType.RECURRING
+            and schedule.max_executions != 0
+        )
+    ):
         await db.schedules.delete(ensure_existence=False, id=schedule.id)
-        logger.info("Reached 'max_executions': (%d) count, schedule was deleted: %s", schedule.max_executions, schedule)
+        logger.info(
+            "Reached 'max_executions': (%d) count, schedule was deleted: %s",
+            schedule.max_executions,
+            schedule,
+        )
         return
-    
+
     if schedule.schedule_type == ScheduleType.RECURRING and schedule.crontab:
         now = datetime.now(timezone.utc)
         cron = croniter(schedule.crontab, now)
         next_execution_time = cron.get_next(datetime)
-        logger.info("New 'next execution' time for RECURRING schedule: %s", next_execution_time)
+        logger.info(
+            "New 'next execution' time for RECURRING schedule: %s", next_execution_time
+        )
 
     await db.schedules.edit(
         ensure_existence=False,
-        id=schedule.id, 
+        id=schedule.id,
         data=UpdateScheduleDTO(
             current_executions=new_executions_count,
             last_executed_at=datetime.now(timezone.utc),
-            next_execution_at=next_execution_time
-        )
+            next_execution_at=next_execution_time,
+        ),
     )

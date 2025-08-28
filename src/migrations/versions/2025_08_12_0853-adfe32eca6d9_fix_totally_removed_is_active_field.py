@@ -37,15 +37,11 @@ def downgrade() -> None:
     """Downgrade schema."""
     op.add_column(
         "user_contact_channels",
-        sa.Column(
-            "is_active", sa.BOOLEAN(), autoincrement=False, nullable=False
-        ),
+        sa.Column("is_active", sa.BOOLEAN(), autoincrement=False, nullable=False),
     )
     op.add_column(
         "templates",
-        sa.Column(
-            "is_active", sa.BOOLEAN(), autoincrement=False, nullable=False
-        ),
+        sa.Column("is_active", sa.BOOLEAN(), autoincrement=False, nullable=False),
     )
     op.alter_column(
         "notification_schedules",

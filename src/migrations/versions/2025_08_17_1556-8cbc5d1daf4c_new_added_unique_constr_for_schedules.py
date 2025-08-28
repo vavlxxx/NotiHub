@@ -35,7 +35,4 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_constraint(
-        "unique_schedules", "notification_schedules", type_="unique"
-    )
-    
+    op.drop_constraint("unique_schedules", "notification_schedules", type_="unique")

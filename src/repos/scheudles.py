@@ -62,23 +62,30 @@ class ScheduleRepository(BaseRepository):
         date_begin: datetime | None = None,
         date_end: datetime | None = None,
     ) -> tuple[int, list[ScheduleDTO]]:
-
         query_total_count = (
             select(func.count())
             .select_from(self.model)
-            .outerjoin(UserContactChannel, self.model.channel_id == UserContactChannel.id)  # type: ignore
+            .outerjoin(
+                UserContactChannel, self.model.channel_id == UserContactChannel.id
+            )  # type: ignore
             .filter_by(user_id=user_id)
         )
         query = (
             select(self.model, query_total_count.scalar_subquery().label("total_count"))
             .order_by(self.model.id.asc())
-            .outerjoin(UserContactChannel, self.model.channel_id == UserContactChannel.id)  # type: ignore
+            .outerjoin(
+                UserContactChannel, self.model.channel_id == UserContactChannel.id
+            )  # type: ignore
             .filter_by(user_id=user_id)
         )
 
         if date_begin and date_end:
-            query_total_count = query_total_count.filter(self.model.next_execution_at.between(date_begin, date_end))  # type: ignore
-            query = query.filter(self.model.next_execution_at.between(date_begin, date_end))  # type: ignore
+            query_total_count = query_total_count.filter(
+                self.model.next_execution_at.between(date_begin, date_end)
+            )  # type: ignore
+            query = query.filter(
+                self.model.next_execution_at.between(date_begin, date_end)
+            )  # type: ignore
 
         query = query.limit(limit).offset(offset)
 

@@ -1,0 +1,55 @@
+stages:
+  - build
+  - lint_format_typing_check
+  - migrations
+  - tests
+  - deploy
+  - cleanup
+
+build-job:
+  stage: build
+  before_script:
+    - cp ${ENV_MAIN} .env
+    - cp ${ENV_TEST} .env.test
+  script:
+    - docker build -t notihub_img .
+
+lint-job:
+  stage: lint_format_typing_check
+  script:
+    - docker run --rm --network notihub_net notihub_img poetry run ruff check
+
+format-job:
+  stage: lint_format_typing_check
+  script:
+    - docker run --rm --network notihub_net notihub_img poetry run ruff format --check
+
+typing-job:
+  stage: lint_format_typing_check
+  script:
+    - docker run --rm --network notihub_net notihub_img poetry run  pyright
+
+migrations-job:
+  stage: migrations
+  script:
+    - docker run --rm --network notihub_net notihub_img poetry run  alembic upgrade head
+
+tests-job:
+  stage: tests
+  script:
+    - docker run --rm --network notihub_net notihub_img poetry run pytest
+
+deploy-job:
+  stage: deploy
+  script:
+    - docker compose -f docker-compose-ci.yml up -d
+    - docker exec notihub_nginx nginx -s reload
+
+cleanup-job:
+  stage: cleanup
+  script:
+    - chmod +x ./delete-images-before.sh
+    - ./delete-images-before.sh notihub_img:latest
+    - docker rmi $(docker images -f dangling=true -q)
+  when: on_success
+  allow_failure: true

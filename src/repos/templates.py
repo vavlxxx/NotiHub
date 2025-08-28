@@ -16,7 +16,6 @@ class TemplateRepository(BaseRepository):
     async def get_all_filtered_with_pagination(
         self, limit: int, offset: int, **filter_by
     ) -> tuple[int, list[TemplateDTO]]:
-
         if filter_by.get("category_id") is None:
             del filter_by["category_id"]
         if filter_by.get("user_id") is None:

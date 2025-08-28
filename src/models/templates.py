@@ -19,10 +19,14 @@ class Template(Base):
     content: Mapped[str] = mapped_column(Text)
     description: Mapped[str | None]
     category_id: Mapped[int] = mapped_column(ForeignKey("template_categories.id"))
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default= func.now(), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default= func.now(), onupdate=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), onupdate=func.now()
+    )
     category: Mapped["Category"] = relationship(back_populates="templates")
-    
+
     __tablename__ = "templates"
     __table_args__ = (
         UniqueConstraint("user_id", "content", name="unique_templates_for_owner"),

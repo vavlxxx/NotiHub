@@ -31,8 +31,6 @@ from src.schemas.notifications import (
 from src.utils.exceptions import (
     ChannelNotFoundError,
     ForbiddenHTMLTemplateError,
-    ObjectExistsError,
-    ScheduleAlreadyExistsError,
     ScheduleNotFoundError,
     MissingTemplateVariablesError,
     ObjectNotFoundError,
@@ -109,7 +107,6 @@ class NotificationService(BaseService):
     async def send_notifications(
         self, data: NotificationSendDTO | NotificationMassSendDTO, user_meta: dict
     ) -> dict[str, int]:
-
         msg = await self._validate_and_get_rendered_template(
             template_id=data.template_id, template_variables=data.variables
         )
@@ -175,10 +172,10 @@ class NotificationService(BaseService):
                 "period_start": date_begin,
                 "period_end": date_end,
             }
-            notification_logs: list[LogDTO] = (
-                await self.db.notification_logs.get_all_filtered_by_date(
-                    date_begin=date_begin, date_end=date_end
-                )
+            notification_logs: list[
+                LogDTO
+            ] = await self.db.notification_logs.get_all_filtered_by_date(
+                date_begin=date_begin, date_end=date_end
             )
         else:
             notification_logs: list[LogDTO] = await self.db.notification_logs.get_all()
@@ -224,15 +221,15 @@ class NotificationService(BaseService):
         date_begin: datetime | None,
         date_end: datetime | None,
     ) -> tuple[int, list[ScheduleDTO]]:
-
-        total_count, schedules = (
-            await self.db.schedules.get_all_nearest_with_pagination(
-                user_id=user_meta.get("user_id", 0),
-                limit=limit,
-                offset=offset,
-                date_begin=date_begin,
-                date_end=date_end,
-            )
+        (
+            total_count,
+            schedules,
+        ) = await self.db.schedules.get_all_nearest_with_pagination(
+            user_id=user_meta.get("user_id", 0),
+            limit=limit,
+            offset=offset,
+            date_begin=date_begin,
+            date_end=date_end,
         )
         return total_count, schedules
 

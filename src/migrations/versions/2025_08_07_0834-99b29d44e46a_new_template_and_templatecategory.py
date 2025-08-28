@@ -33,9 +33,7 @@ def upgrade() -> None:
             name=op.f("fk_template_categories_parent_id_template_categories"),
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_template_categories")),
-        sa.UniqueConstraint(
-            "title", name=op.f("uq_template_categories_title")
-        ),
+        sa.UniqueConstraint("title", name=op.f("uq_template_categories_title")),
     )
     op.create_table(
         "templates",

@@ -7,7 +7,7 @@ from src.utils.exceptions import (
     ObjectExistsError,
     ObjectNotFoundError,
     CategoryExistsError,
-    CategoryNotFoundError
+    CategoryNotFoundError,
 )
 
 
@@ -15,7 +15,7 @@ class CategoryService(BaseService):
     async def get_categories_list(self) -> list[CategoryDTO]:
         categories: list[CategoryDTO] = await self.db.categories.get_all_filtered()
         return categories
-    
+
     async def get_category(self, category_id: int) -> CategoryDTO:
         try:
             category: CategoryDTO = await self.db.categories.get_one(id=category_id)
@@ -24,7 +24,7 @@ class CategoryService(BaseService):
         return category
 
     async def add_category(self, data: AddCategoryDTO) -> CategoryDTO:
-        if hasattr(data, 'parent_id') and data.parent_id is not None:
+        if hasattr(data, "parent_id") and data.parent_id is not None:
             try:
                 await self.db.categories.get_one(id=data.parent_id)
             except ObjectNotFoundError as exc:
@@ -36,10 +36,9 @@ class CategoryService(BaseService):
             raise CategoryExistsError from exc
         await self.db.commit()
         return category
-    
 
     async def update_category(self, data: AddCategoryDTO, category_id: int) -> None:
-        if hasattr(data, 'parent_id') and data.parent_id is not None:
+        if hasattr(data, "parent_id") and data.parent_id is not None:
             try:
                 await self.db.categories.get_one(id=data.parent_id)
             except ObjectNotFoundError as exc:
@@ -53,15 +52,16 @@ class CategoryService(BaseService):
             raise CategoryExistsError from exc
         await self.db.commit()
 
-
     async def delete_category(self, category_id: int) -> None:
-        templates: list[TemplateDTO] = await self.db.templates.get_all_filtered(category_id=category_id)
+        templates: list[TemplateDTO] = await self.db.templates.get_all_filtered(
+            category_id=category_id
+        )
         if templates:
             raise CategoryInUseError(
-                detail="Данная категория используется в шаблонах с id: " + 
-                ', '.join(map(str, [template.id for template in templates]))
+                detail="Данная категория используется в шаблонах с id: "
+                + ", ".join(map(str, [template.id for template in templates]))
             )
-        
+
         try:
             await self.db.categories.delete(id=category_id)
         except ObjectNotFoundError as exc:

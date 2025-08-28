@@ -10,10 +10,9 @@ EXAMPLE_TEMPLATES: Dict[str, Example] = {
             "title": "Подтверждение заказа",
             "content": "Здравствуйте, {{ username }}! Ваш заказ № {{ order_id }} на сумму {{ amount }} руб. успешно оформлен и принят в обработку. Ожидаемая дата доставки: {{ delivery_date }}.",
             "category_id": 1,  # ECOMMERCE
-            "description": "Текстовый шаблон для подтверждения заказа в интернет-магазине"
-        }
+            "description": "Текстовый шаблон для подтверждения заказа в интернет-магазине",
+        },
     },
-    
     "ORDER_SHIPPED_HTML": {
         "summary": "Заказ отправлен (HTML)",
         "value": {
@@ -49,20 +48,18 @@ EXAMPLE_TEMPLATES: Dict[str, Example] = {
 </body>
 </html>""",
             "category_id": 1,  # ECOMMERCE
-            "description": "HTML шаблон уведомления об отправке заказа с трекингом"
-        }
+            "description": "HTML шаблон уведомления об отправке заказа с трекингом",
+        },
     },
-    
     "CART_ABANDONED": {
         "summary": "Забытая корзина",
         "value": {
             "title": "Вы забыли про корзину",
             "content": "{{ username }}, в вашей корзине ждут {{ items_count }} товаров на {{ total_amount }} руб. Завершите покупку в течение 24 часов и получите скидку {{ discount }}%!",
             "category_id": 1,  # ECOMMERCE
-            "description": "Напоминание о незавершенной покупке"
-        }
+            "description": "Напоминание о незавершенной покупке",
+        },
     },
-    
     # УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ (USER_MANAGEMENT)
     "WELCOME_NEW_USER_HTML": {
         "summary": "Добро пожаловать (HTML)",
@@ -98,20 +95,18 @@ EXAMPLE_TEMPLATES: Dict[str, Example] = {
 </body>
 </html>""",
             "category_id": 2,  # USER_MANAGEMENT
-            "description": "HTML приветственное сообщение для новых пользователей"
-        }
+            "description": "HTML приветственное сообщение для новых пользователей",
+        },
     },
-    
     "PASSWORD_RESET": {
         "summary": "Сброс пароля",
         "value": {
             "title": "Восстановление пароля",
             "content": "Здравствуйте, {{ username }}! Для сброса пароля перейдите по ссылке: {{ reset_link }}. Код подтверждения: {{ reset_code }}. Ссылка действительна 24 часа.",
             "category_id": 2,  # USER_MANAGEMENT
-            "description": "Восстановление доступа к учетной записи"
-        }
+            "description": "Восстановление доступа к учетной записи",
+        },
     },
-    
     # МЕДИЦИНА (HEALTHCARE)
     "APPOINTMENT_REMINDER": {
         "summary": "Напоминание о приеме",
@@ -119,10 +114,9 @@ EXAMPLE_TEMPLATES: Dict[str, Example] = {
             "title": "Напоминание о визите к врачу",
             "content": "Уважаемый(ая) {{ patient_name }}! Напоминаем о записи к {{ doctor_name }} завтра в {{ appointment_time }}. Кабинет {{ room_number }}, адрес: {{ clinic_address }}.",
             "category_id": 3,  # HEALTHCARE
-            "description": "Напоминание пациентам о предстоящем визите"
-        }
+            "description": "Напоминание пациентам о предстоящем визите",
+        },
     },
-    
     "TEST_RESULTS_HTML": {
         "summary": "Результаты анализов (HTML)",
         "value": {
@@ -156,10 +150,9 @@ EXAMPLE_TEMPLATES: Dict[str, Example] = {
 </body>
 </html>""",
             "category_id": 3,  # HEALTHCARE
-            "description": "Уведомление о готовности результатов медицинских анализов"
-        }
+            "description": "Уведомление о готовности результатов медицинских анализов",
+        },
     },
-    
     # ФИНАНСЫ (FINANCE)
     "PAYMENT_SUCCESS": {
         "summary": "Успешная оплата",
@@ -167,20 +160,18 @@ EXAMPLE_TEMPLATES: Dict[str, Example] = {
             "title": "Платеж успешно проведен",
             "content": "{{ username }}, ваш платеж на сумму {{ amount }} руб. успешно обработан. Номер операции: {{ transaction_id }}. Остаток на счете: {{ balance }} руб.",
             "category_id": 4,  # FINANCE
-            "description": "Подтверждение успешного платежа"
-        }
+            "description": "Подтверждение успешного платежа",
+        },
     },
-    
     "LOW_BALANCE_WARNING": {
         "summary": "Низкий баланс",
         "value": {
             "title": "Внимание: низкий баланс",
             "content": "{{ username }}, на вашем счете осталось {{ balance }} руб. Рекомендуем пополнить баланс для избежания блокировки услуг.",
             "category_id": 4,  # FINANCE
-            "description": "Предупреждение о низком балансе на счете"
-        }
+            "description": "Предупреждение о низком балансе на счете",
+        },
     },
-    
     # МАРКЕТИНГ (MARKETING)
     "BIRTHDAY_SPECIAL_HTML": {
         "summary": "День рождения с подарком (HTML)",
@@ -220,20 +211,18 @@ EXAMPLE_TEMPLATES: Dict[str, Example] = {
 </body>
 </html>""",
             "category_id": 5,  # MARKETING
-            "description": "Праздничное поздравление с персональной скидкой"
-        }
+            "description": "Праздничное поздравление с персональной скидкой",
+        },
     },
-    
     "NEWSLETTER_WEEKLY": {
         "summary": "Еженедельная рассылка",
         "value": {
             "title": "Еженедельный дайджест",
             "content": "Привет, {{ username }}! Новости недели: {{ news_summary }}. Популярные товары: {{ popular_items }}. Специальное предложение: {{ special_offer }}.",
             "category_id": 5,  # MARKETING
-            "description": "Еженедельная информационная рассылка"
-        }
+            "description": "Еженедельная информационная рассылка",
+        },
     },
-    
     # СИСТЕМНЫЕ (SYSTEM)
     "MAINTENANCE_NOTICE": {
         "summary": "Техническое обслуживание",
@@ -241,10 +230,9 @@ EXAMPLE_TEMPLATES: Dict[str, Example] = {
             "title": "Плановые технические работы",
             "content": "Уважаемые пользователи! {{ maintenance_date }} с {{ start_time }} до {{ end_time }} планируются технические работы. Сервис будет временно недоступен.",
             "category_id": 6,  # SYSTEM
-            "description": "Уведомление о плановых технических работах"
-        }
+            "description": "Уведомление о плановых технических работах",
+        },
     },
-    
     "SECURITY_ALERT_HTML": {
         "summary": "Предупреждение безопасности (HTML)",
         "value": {
@@ -280,17 +268,16 @@ EXAMPLE_TEMPLATES: Dict[str, Example] = {
 </body>
 </html>""",
             "category_id": 6,  # SYSTEM
-            "description": "Критическое уведомление о подозрительной активности"
-        }
+            "description": "Критическое уведомление о подозрительной активности",
+        },
     },
-    
     "SUBSCRIPTION_EXPIRY": {
         "summary": "Истечение подписки",
         "value": {
             "title": "Подписка истекает",
             "content": "{{ username }}, ваша подписка {{ subscription_type }} истекает {{ expiry_date }}. Для продления перейдите по ссылке {{ renewal_link }}.",
             "category_id": 6,  # SYSTEM
-            "description": "Напоминание об истечении срока подписки"
-        }
-    }
+            "description": "Напоминание об истечении срока подписки",
+        },
+    },
 }

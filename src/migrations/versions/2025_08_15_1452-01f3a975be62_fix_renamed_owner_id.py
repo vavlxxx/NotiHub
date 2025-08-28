@@ -21,12 +21,8 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    op.add_column(
-        "templates", sa.Column("user_id", sa.Integer(), nullable=False)
-    )
-    op.drop_constraint(
-        op.f("unique_templates_for_owner"), "templates", type_="unique"
-    )
+    op.add_column("templates", sa.Column("user_id", sa.Integer(), nullable=False))
+    op.drop_constraint(op.f("unique_templates_for_owner"), "templates", type_="unique")
     op.create_unique_constraint(
         "unique_templates_for_owner", "templates", ["user_id", "content"]
     )
@@ -47,9 +43,7 @@ def downgrade() -> None:
     """Downgrade schema."""
     op.add_column(
         "templates",
-        sa.Column(
-            "owner_id", sa.INTEGER(), autoincrement=False, nullable=False
-        ),
+        sa.Column("owner_id", sa.INTEGER(), autoincrement=False, nullable=False),
     )
     op.drop_constraint(
         op.f("fk_templates_user_id_users"), "templates", type_="foreignkey"
@@ -61,9 +55,7 @@ def downgrade() -> None:
         ["owner_id"],
         ["id"],
     )
-    op.drop_constraint(
-        "unique_templates_for_owner", "templates", type_="unique"
-    )
+    op.drop_constraint("unique_templates_for_owner", "templates", type_="unique")
     op.create_unique_constraint(
         op.f("unique_templates_for_owner"),
         "templates",

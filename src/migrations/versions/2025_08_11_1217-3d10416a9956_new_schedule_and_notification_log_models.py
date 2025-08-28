@@ -28,7 +28,9 @@ def upgrade() -> None:
         sa.Column("message", sa.Text(), nullable=False),
         sa.Column(
             "provider_name",
-            postgresql.ENUM("EMAIL", "TELEGRAM", name="contactchanneltype", create_type=False),
+            postgresql.ENUM(
+                "EMAIL", "TELEGRAM", name="contactchanneltype", create_type=False
+            ),
             nullable=False,
         ),
         sa.Column(
@@ -81,9 +83,7 @@ def upgrade() -> None:
             nullable=False,
             comment="Текущее количество выполнений",
         ),
-        sa.Column(
-            "last_executed_at", sa.DateTime(timezone=True), nullable=True
-        ),
+        sa.Column("last_executed_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column(
             "next_execution_at",
             sa.DateTime(timezone=True),
@@ -109,9 +109,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(
             ["channel_id"],
             ["user_contact_channels.id"],
-            name=op.f(
-                "fk_notification_schedules_channel_id_user_contact_channels"
-            ),
+            name=op.f("fk_notification_schedules_channel_id_user_contact_channels"),
             onupdate="restrict",
             ondelete="restrict",
         ),

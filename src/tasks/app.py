@@ -33,4 +33,3 @@ celery_app.conf.beat_schedule = {
         "schedule": 60.0,
     }
 }
-

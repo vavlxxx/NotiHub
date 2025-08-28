@@ -6,4 +6,3 @@ class BaseDTO(BaseModel):
         from_attributes=True,
         str_min_length=1,
     )
-    

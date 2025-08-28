@@ -31,7 +31,7 @@ def upgrade() -> None:
         ),
     )
     op.drop_column("notification_logs", "provider_response")
-    op.sync_enum_values(
+    op.sync_enum_values(  # type: ignore
         enum_schema="public",
         enum_name="contactchanneltype",
         new_values=["EMAIL", "TELEGRAM", "PUSH"],
@@ -53,7 +53,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.sync_enum_values(
+    op.sync_enum_values(  # type: ignore
         enum_schema="public",
         enum_name="contactchanneltype",
         new_values=["EMAIL", "TELEGRAM"],

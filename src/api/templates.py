@@ -61,7 +61,8 @@ async def get_templates_list(
 
 @router.get("/{template_id}", summary="Получить конкретный шаблон по ID")
 async def get_template(
-    db: DBDep, template_id: int = Path(description="ID шаблона")  # type: ignore
+    db: DBDep,
+    template_id: int = Path(description="ID шаблона"),  # type: ignore
 ):
     try:
         template = await TemplateService(db).get_template(template_id=template_id)

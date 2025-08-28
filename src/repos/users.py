@@ -19,4 +19,3 @@ class UserRepository(BaseRepository):
         except NoResultFound:
             raise ObjectNotFoundError
         return UserWithPasswordDTO.model_validate(obj)
-    

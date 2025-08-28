@@ -40,7 +40,6 @@ async def send_telegram_message(
 
         async with aiohttp.ClientSession() as session:
             async with session.post(url=bot_message_method_url, json=body) as response:
-
                 if response.status == 200:
                     status = NotificationStatus.SUCCESS
                     logger.info(
@@ -57,8 +56,8 @@ async def send_telegram_message(
                     details,
                 )
 
-    except ForbiddenHTMLTemplateError as exc:
-        details = f"HTML templates are not supported for Telegram notifications"
+    except ForbiddenHTMLTemplateError:
+        details = "HTML templates are not supported for Telegram notifications"
         logger.error(details)
     except Exception as exc:
         details = f"Unexpected Error: {str(exc)}"
@@ -193,8 +192,8 @@ async def send_push(
                     ntfy_url_with_topic,
                 )
 
-    except ForbiddenHTMLTemplateError as exc:
-        details = f"HTML templates are not supported for Push notifications"
+    except ForbiddenHTMLTemplateError:
+        details = "HTML templates are not supported for Push notifications"
         logger.error(details)
     except Exception as exc:
         details = f"Unexpected Error: {str(exc)}"

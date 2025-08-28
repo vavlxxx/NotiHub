@@ -21,9 +21,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    op.add_column(
-        "templates", sa.Column("owner_id", sa.Integer(), nullable=False)
-    )
+    op.add_column("templates", sa.Column("owner_id", sa.Integer(), nullable=False))
     op.create_unique_constraint(
         "unique_templates_for_owner", "templates", ["owner_id", "content"]
     )
@@ -41,7 +39,5 @@ def downgrade() -> None:
     op.drop_constraint(
         op.f("fk_templates_owner_id_users"), "templates", type_="foreignkey"
     )
-    op.drop_constraint(
-        "unique_templates_for_owner", "templates", type_="unique"
-    )
+    op.drop_constraint("unique_templates_for_owner", "templates", type_="unique")
     op.drop_column("templates", "owner_id")

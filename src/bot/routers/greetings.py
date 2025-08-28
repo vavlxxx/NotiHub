@@ -12,7 +12,7 @@ router = Router()
 @router.message(CommandStart())
 async def cmd_start(message: Message):
     formatted_message = settings.JINGA2_ENV.from_string(WELCOME_MESSAGE).render(
-        {"user_id": message.from_user.id} # type: ignore
+        {"user_id": message.from_user.id}  # type: ignore
     )
     await message.answer(formatted_message)
 
@@ -21,6 +21,7 @@ async def cmd_start(message: Message):
 async def cmd_help(message: Message):
     await message.answer(HELP_MESSAGE)
 
+
 @router.message()
 async def echo(message: Message):
-    await message.answer("😊 Не знаю такой команды, попробуйте /help") 
+    await message.answer("😊 Не знаю такой команды, попробуйте /help")

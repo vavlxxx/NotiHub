@@ -9,7 +9,6 @@ from src.repos.scheudles import ScheduleRepository
 
 
 class DB_Manager:
-
     def __init__(self, session_factory):
         self.session_factory = session_factory
 

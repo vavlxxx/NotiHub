@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
 import logging
@@ -17,7 +18,7 @@ logging.basicConfig(level=logging.INFO)
 
 bot = Bot(
     token=settings.TELEGRAM_BOT_TOKEN,
-    default=DefaultBotProperties(parse_mode='markdown')
+    default=DefaultBotProperties(parse_mode="markdown"),
 )
 
 dp = Dispatcher()

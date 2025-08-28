@@ -24,13 +24,10 @@ class RedisManager:
         b_key = pickle.dumps(key)
         b_value = await self._redis.get(name=b_key)
         return pickle.loads(b_value)
-    
+
     async def close(self):
         if self._redis:
             await self._redis.close()
 
 
-redis_manager = RedisManager(
-    host=settings.REDIS_HOST,
-    port=settings.REDIS_PORT
-)
+redis_manager = RedisManager(host=settings.REDIS_HOST, port=settings.REDIS_PORT)

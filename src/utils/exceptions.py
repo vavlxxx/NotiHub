@@ -151,7 +151,7 @@ class LoginDataHTTPError(NotiHubBaseHTTPError):
 
 class TokenUpdateHTTPError(NotiHubBaseHTTPError):
     status_code = 401
-    detail = f"Новый токен доступа можно получать только раз в {settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES/60:.1f} ч., либо выйдя из текущего аккаунта"
+    detail = f"Новый токен доступа можно получать только раз в {settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES / 60:.1f} ч., либо выйдя из текущего аккаунта"
 
 
 class InvalidTokenHTTPError(NotiHubBaseHTTPError):
