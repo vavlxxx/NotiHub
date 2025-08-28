@@ -21,4 +21,4 @@
 
   networks:
     notihub_net:
-      driver: bridge
+      external: "true"
