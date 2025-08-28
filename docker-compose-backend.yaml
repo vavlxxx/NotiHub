@@ -1,0 +1,43 @@
+services:
+  notihub_api_service:
+    container_name: notihub_api
+    image: notihub_img
+    # ports:
+    #   - "8888:8888"
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env.docker
+    networks:
+      - "notihub_net"
+    
+  notihub_celery_beat_service:
+    container_name: "notihub_celery_beat"
+    image: "notihub_img"
+    build: 
+      context: .
+      dockerfile: "Dockerfile"
+    env_file:
+      - ".env.docker"
+    networks:
+      - "notihub_net"
+    command: "poetry run celery --app=src.tasks.app:celery_app beat -l INFO"
+
+
+  notihub_celery_worker_service:
+    container_name: "notihub_celery_worker"
+    image: "notihub_img"
+    build: 
+      context: .
+      dockerfile: "Dockerfile"
+    env_file:
+      - ".env.docker"
+    networks:
+      - "notihub_net"
+    command: "poetry run celery --app=src.tasks.app:celery_app worker -l INFO"
+
+
+networks:
+  notihub_net:
+    external: "true"
