@@ -1,7 +1,8 @@
 from pathlib import Path
 from fastapi import APIRouter, Body, Depends
 
-from api.examples.channels import EXAMPLE_CHANNELS
+from src.api.examples.channels import EXAMPLE_CHANNELS
+from src.api.texts.channels import API_DESCR_CHANNELS_ADD
 from src.schemas.channels import RequestAddChannelDTO, UpdateChannelDTO
 from src.dependencies.users import auth_required, UserMetaDep
 from src.dependencies.db import DBDep
@@ -28,7 +29,7 @@ router = APIRouter(
 )
 
 
-@router.post("", summary="Добавить канал")
+@router.post("", summary="Добавить канал", description=API_DESCR_CHANNELS_ADD)
 async def add_channel(
     db: DBDep,
     user_meta: UserMetaDep,

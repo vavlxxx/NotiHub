@@ -10,7 +10,7 @@ class RequestAddChannelDTO(BaseDTO):
     channel_type: ContactChannelType
 
     @model_validator(mode="after")
-    def validate_all_fields_are_providen(self):
+    def validate_channel_type(self):
         match self.channel_type:
             case ContactChannelType.TELEGRAM:
                 if not self.contact_value.isdigit():

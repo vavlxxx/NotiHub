@@ -2,16 +2,24 @@ import math
 
 from fastapi import APIRouter, Body, Depends, Path
 
+from src.api.texts.notifications import (
+    API_DESCR_NOTIFICATIONS_SENDALL,
+    API_DESCR_NOTIFICATIONS_SENDONE,
+    DESCR_API_GET_REPORT,
+    DESCR_API_GET_SCHEDULES,
+)
+from src.api.examples.notifications import (
+    EXAMPLE_NOTIFICATIONS,
+    EXAMPLE_NOTIFICATIONS_FOR_ALL,
+)
+
 from src.schemas.notifications import NotificationMassSendDTO, NotificationSendDTO
 from src.dependencies.db import DBDep
 from src.dependencies.users import auth_required, UserMetaDep, only_staff
 from src.dependencies.pagination import PaginationDep
 from src.dependencies.schedule import ScheduleFiltrationDep
 from src.services.notifications import NotificationService
-from src.api.examples.notifications import (
-    EXAMPLE_NOTIFICATIONS,
-    EXAMPLE_NOTIFICATIONS_FOR_ALL,
-)
+
 from src.utils.exceptions import (
     ChannelNotFoundError,
     ChannelNotFoundHTTPError,
@@ -37,7 +45,11 @@ router = APIRouter(
 )
 
 
-@router.post("/sendOne", summary="Отправить уведомление")
+@router.post(
+    "/sendOne",
+    summary="Отправить уведомление",
+    description=API_DESCR_NOTIFICATIONS_SENDONE,
+)
 async def send_one_notification(
     db: DBDep,
     user_meta: UserMetaDep,
@@ -68,6 +80,7 @@ async def send_one_notification(
     "/sendMany",
     summary="Массовая рассылка всем пользователям | Только для персонала",
     dependencies=[Depends(only_staff)],
+    description=API_DESCR_NOTIFICATIONS_SENDALL,
 )
 async def send_many_notifications(
     db: DBDep,
@@ -94,7 +107,11 @@ async def send_many_notifications(
     return {"status": "OK", "data": response}
 
 
-@router.get("/getSchedules", summary="Получить расписание уведомлений")
+@router.get(
+    "/getSchedules",
+    summary="Получить расписание уведомлений",
+    description=DESCR_API_GET_SCHEDULES,
+)
 # @cache(expire=120)
 async def get_schedules_list(
     db: DBDep,
@@ -155,6 +172,7 @@ async def delete_schedule(
     "/getReport",
     summary="Получить отчет по статистике уведомлений | Только для персонала",
     dependencies=[Depends(only_staff)],
+    description=DESCR_API_GET_REPORT,
 )
 async def get_report(db: DBDep, filtration: ScheduleFiltrationDep):
     response = await NotificationService(db).get_report(

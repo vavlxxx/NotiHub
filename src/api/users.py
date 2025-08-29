@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Body, Depends, Request, Response
 
 from src.api.examples.users import EXAMPLE_USER_LOGIN, EXAMPLE_USER_UPDATE
+from src.api.texts.users import API_DESCR_USER_REGISTER, DESCR_API_GET_USER
 from src.schemas.users import RequestRegisterUserDTO, RequestLoginUserDTO, UserUpdateDTO
 from src.dependencies.users import UserMetaDep, auth_required
 from src.services.users import UserService
 from src.dependencies.db import DBDep
+
 from src.utils.exceptions import (
     LoginDataError,
     LoginDataHTTPError,
@@ -20,7 +22,9 @@ from src.utils.exceptions import (
 router = APIRouter(prefix="/auth", tags=["Работа с пользователями"])
 
 
-@router.post("/register", summary="Зарегистрироваться")
+@router.post(
+    "/register", summary="Зарегистрироваться", description=API_DESCR_USER_REGISTER
+)
 async def register_user(
     db: DBDep,
     user_meta: UserMetaDep,
@@ -35,7 +39,7 @@ async def register_user(
     return {"status": "OK"}
 
 
-@router.post("/login", summary="Пройти аутентификацию или получить новый токен")
+@router.post("/login", summary="Пройти аутентификацию и получить новый токен")
 async def login_user(
     db: DBDep,
     request: Request,
@@ -78,6 +82,7 @@ async def edit_user(
     path="/me",
     summary="Получить профиль аутентифицированного пользователя",
     dependencies=[Depends(auth_required)],
+    description=DESCR_API_GET_USER,
 )
 async def get_profile(db: DBDep, user_meta: UserMetaDep):
     try:

@@ -4,6 +4,7 @@ from pathlib import Path
 from fastapi import APIRouter, Body, Depends
 from fastapi_cache.decorator import cache
 
+from src.api.texts.templates import API_DESCR_ADD_TEMPLATE
 from src.api.examples.templates import EXAMPLE_TEMPLATES
 from src.dependencies.db import DBDep
 from src.dependencies.users import UserMetaDep, auth_required, only_staff
@@ -11,6 +12,7 @@ from src.dependencies.templates import TemplateFiltrationDep
 from src.dependencies.pagination import PaginationDep
 from src.schemas.templates import RequestAddTemplateDTO, TemplateUpdateDTO
 from src.services.templates import TemplateService
+
 from src.utils.exceptions import (
     TemplateExistsError,
     TemplateExistsHTTPError,
@@ -78,6 +80,7 @@ async def get_template(
     "",
     summary="Добавить шаблон | Только для персонала",
     dependencies=[Depends(only_staff)],
+    description=API_DESCR_ADD_TEMPLATE,
 )
 async def add_template(
     db: DBDep,
@@ -96,6 +99,8 @@ async def add_template(
         raise TemplateSyntaxCheckHTTPError from exc
     except TemplateExistsError as exc:
         raise TemplateExistsHTTPError from exc
+    except ValueOutOfRangeError as exc:
+        raise ValueOutOfRangeHTTPError(detail=exc.detail) from exc
     return {"status": "OK", "data": template}
 
 

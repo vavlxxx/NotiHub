@@ -50,3 +50,9 @@ async def create_and_update_channel(ac: AsyncClient):
         json={"channel_type": "TELEGRAM", "contact_value": "1@gmail.com"},
     )
     assert result and result.status_code == 422
+
+    result = await ac.patch(
+        f"/channels/{channel_id}",
+        json={},
+    )
+    assert result and result.status_code == 422

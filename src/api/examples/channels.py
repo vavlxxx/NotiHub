@@ -5,7 +5,7 @@ from fastapi.openapi.models import Example
 EXAMPLE_CHANNELS: Dict[str, Example] = {
     "TELEGRAM": {
         "summary": "TELEGRAM",
-        "value": {"contact_value": "telegram_id/username", "channel_type": "TELEGRAM"},
+        "value": {"contact_value": "telegram_id", "channel_type": "TELEGRAM"},
     },
     "EMAIL": {
         "summary": "EMAIL",
