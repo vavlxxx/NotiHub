@@ -32,6 +32,8 @@ typing-job:
 migrations-job:
   stage: migrations
   script:
+    - docker start notihub_postgres
+    - sleep 10
     - docker run --rm --network notihub_net notihub_img poetry run  alembic upgrade head
 
 tests-job:
@@ -42,6 +44,7 @@ tests-job:
 deploy-job:
   stage: deploy
   script:
+    - docker start notihub_redis
     - docker compose -f docker-compose-ci.yml up -d
     - docker start notihub_nginx
     - docker exec notihub_nginx nginx -s reload
