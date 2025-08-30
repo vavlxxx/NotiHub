@@ -15,6 +15,7 @@ class UserRole(str, Enum):
 class NotificationStatus(str, Enum):
     SUCCESS = "SUCCESS"
     FAILURE = "FAILURE"
+    PENDING = "PENDING"
 
 
 class ScheduleType(str, Enum):

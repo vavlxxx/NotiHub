@@ -64,6 +64,10 @@ class TemplateExistsError(ObjectExistsError):
     pass
 
 
+class NotificationExistsError(ObjectExistsError):
+    pass
+
+
 class ValueOutOfRangeError(NotiHubBaseError):
     pass
 
@@ -204,8 +208,17 @@ class TemplateSyntaxCheckHTTPError(NotiHubBaseHTTPError):
     detail = "Неверная синтаксис шаблона"
 
 
+class NotificationExistsHTTPError(ObjectExistsHTTPError):
+    status_code = 409
+    detail = "Не удалось создать новые уведомления, так как уже существуют уведомления с такими же параметрами"
+
+
 class ValueOutOfRangeHTTPError(NotiHubBaseHTTPError):
     status_code = 422
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.detail = "Значение выходит за допустимые пределы"
 
 
 class CategoryInUseHTTPError(NotiHubBaseHTTPError):

@@ -1,3 +1,4 @@
+from typing import Sequence
 from sqlalchemy import select
 from sqlalchemy.exc import DBAPIError
 from asyncpg import DataError
@@ -12,7 +13,9 @@ class ChannelRepository(BaseRepository):
     model = UserContactChannel
     schema = ChannelDTO
 
-    async def get_all_filtered_by_ids(self, ids_list: list, **filter_by):
+    async def get_all_filtered_by_ids(
+        self, ids_list: list, **filter_by
+    ) -> Sequence[ChannelDTO]:
         query = (
             select(self.model)
             .select_from(self.model)
@@ -27,4 +30,5 @@ class ChannelRepository(BaseRepository):
             if isinstance(exc.orig.__cause__, DataError):  # type: ignore
                 raise ValueOutOfRangeError(detail=exc.orig.__cause__.args[0]) from exc  # type: ignore
             raise exc
-        return result.scalars().all()
+        channels = result.scalars().all()
+        return channels

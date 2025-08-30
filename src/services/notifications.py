@@ -6,8 +6,8 @@ from croniter import croniter
 from jinja2 import TemplateSyntaxError, meta
 from pydantic import FutureDatetime
 
-from schemas.channels import ChannelDTO
-from schemas.templates import TemplateDTO
+from src.schemas.channels import ChannelDTO
+from src.schemas.templates import TemplateDTO
 from src.services.base import BaseService
 from src.settings import settings
 from src.utils.enums import (
@@ -31,6 +31,8 @@ from src.schemas.notifications import (
 from src.utils.exceptions import (
     ChannelNotFoundError,
     ForbiddenHTMLTemplateError,
+    ObjectExistsError,
+    NotificationExistsError,
     ScheduleNotFoundError,
     MissingTemplateVariablesError,
     ObjectNotFoundError,
@@ -79,7 +81,7 @@ class NotificationService(BaseService):
             raise ValueError("channels_ids attribute is required")
 
         channels: list[ChannelDTO] = await self.db.channels.get_all_filtered_by_ids(
-            ids_list=data.channels_ids, user_id=user_meta.get("user_id", 0)
+            ids_list=data.channels_ids, user_id=user_meta["user_id"]
         )
         channels_ids_ = [channel.id for channel in channels]
         if len(channels_ids_) != len(data.channels_ids):
@@ -104,19 +106,9 @@ class NotificationService(BaseService):
 
         return None
 
-    async def send_notifications(
-        self, data: NotificationSendDTO | NotificationMassSendDTO, user_meta: dict
-    ) -> dict[str, int]:
-        msg = await self._validate_and_get_rendered_template(
-            template_id=data.template_id, template_variables=data.variables
-        )
-        template_type: ContentType = NotificationHelper.detect_content_type(msg)
-        channels: list[ChannelDTO] = await self._validate_and_get_channels(
-            data=data, user_meta=user_meta
-        )
-
-        results = {"ready_to_send": 0, "scheduled": 0}
-        schedule = []
+    def _prepare_tasks(
+        self, data, schedule, pendings, template_type, channels, msg, user_id
+    ) -> None:
         for channel in channels:
             if (
                 (type(data) is not NotificationMassSendDTO)
@@ -130,6 +122,7 @@ class NotificationService(BaseService):
             if data.schedule_type == ScheduleType.ONCE and data.scheduled_at is None:
                 ready_to_send = RequestAddLogDTO(
                     message=msg,
+                    sender_id=user_id,
                     contact_data=channel.contact_value,
                     provider_name=channel.channel_type,
                 )
@@ -138,8 +131,7 @@ class NotificationService(BaseService):
                     channel.channel_type,
                     ready_to_send,
                 )
-                CELERY_TASKS[channel.channel_type].delay(ready_to_send.model_dump())
-                results["ready_to_send"] += 1
+                pendings.append(ready_to_send)
                 continue
 
             scheduled_notification = AddScheduleDTO(
@@ -158,11 +150,43 @@ class NotificationService(BaseService):
                 scheduled_notification,
             )
 
-        if schedule:
-            await self.db.schedules.add_bulk_schedules(schedule)
-            results["scheduled"] = len(schedule)
+    async def send_notifications(
+        self, data: NotificationSendDTO | NotificationMassSendDTO, user_meta: dict
+    ) -> dict[str, list[int]]:
+        msg = await self._validate_and_get_rendered_template(
+            template_id=data.template_id, template_variables=data.variables
+        )
+        template_type: ContentType = NotificationHelper.detect_content_type(msg)
+        channels: list[ChannelDTO] = await self._validate_and_get_channels(
+            data=data, user_meta=user_meta
+        )
 
-        await self.db.commit()
+        results = defaultdict(list)
+        schedule = []
+        pendings = []
+
+        self._prepare_tasks(
+            data=data,
+            schedule=schedule,
+            pendings=pendings,
+            template_type=template_type,
+            channels=channels,
+            msg=msg,
+            user_id=user_meta["user_id"],
+        )
+
+        if pendings:
+            logs_ids = await self.db.notification_logs.add_bulk(pendings)
+            await self.db.commit()
+            for penging in pendings:
+                CELERY_TASKS[penging.provider_name].delay(penging.model_dump())
+            results["pending"].extend(logs_ids)
+
+        if schedule:
+            schedules_ids = await self.db.schedules.add_bulk(schedule)
+            await self.db.commit()
+            results["scheduled"].extend(schedules_ids)
+
         return results
 
     async def get_report(self, date_begin: datetime | None, date_end: datetime | None):
@@ -172,10 +196,10 @@ class NotificationService(BaseService):
                 "period_start": date_begin,
                 "period_end": date_end,
             }
-            notification_logs: list[
-                LogDTO
-            ] = await self.db.notification_logs.get_all_filtered_by_date(
-                date_begin=date_begin, date_end=date_end
+            notification_logs: list[LogDTO] = (
+                await self.db.notification_logs.get_all_filtered_by_date(
+                    date_begin=date_begin, date_end=date_end
+                )
             )
         else:
             notification_logs: list[LogDTO] = await self.db.notification_logs.get_all()
@@ -225,7 +249,7 @@ class NotificationService(BaseService):
             total_count,
             schedules,
         ) = await self.db.schedules.get_all_nearest_with_pagination(
-            user_id=user_meta.get("user_id", 0),
+            user_id=user_meta["user_id"],
             limit=limit,
             offset=offset,
             date_begin=date_begin,
@@ -233,10 +257,30 @@ class NotificationService(BaseService):
         )
         return total_count, schedules
 
+    async def get_history(
+        self,
+        limit: int,
+        offset: int,
+        user_meta: dict,
+        date_begin: datetime | None,
+        date_end: datetime | None,
+    ) -> tuple[int, list[LogDTO]]:
+        (
+            total_count,
+            logs,
+        ) = await self.db.notification_logs.get_history_with_pagination(
+            user_id=user_meta["user_id"],
+            limit=limit,
+            offset=offset,
+            date_begin=date_begin,
+            date_end=date_end,
+        )
+        return total_count, logs
+
     async def delete_schedule(self, schedule_id: int, user_meta: dict) -> None:
         try:
             await self.db.schedules.delete_by_user(
-                schedule_id=schedule_id, user_id=user_meta.get("user_id", 0)
+                schedule_id=schedule_id, user_id=user_meta["user_id"]
             )
         except ObjectNotFoundError as exc:
             raise ScheduleNotFoundError from exc

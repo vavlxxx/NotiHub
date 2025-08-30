@@ -1,12 +1,14 @@
 import math
 
 from fastapi import APIRouter, Body, Depends, Path
+from fastapi_cache.decorator import cache
 
 from src.api.texts.notifications import (
     API_DESCR_NOTIFICATIONS_SENDALL,
     API_DESCR_NOTIFICATIONS_SENDONE,
     DESCR_API_GET_REPORT,
     DESCR_API_GET_SCHEDULES,
+    DESCR_API_GET_HISTORY,
 )
 from src.api.examples.notifications import (
     EXAMPLE_NOTIFICATIONS,
@@ -27,6 +29,8 @@ from src.utils.exceptions import (
     ForbiddenHTMLTemplateHTTPError,
     MissingTemplateVariablesError,
     MissingTemplateVariablesHTTPError,
+    NotificationExistsError,
+    NotificationExistsHTTPError,
     ScheduleAlreadyExistsError,
     ScheduleAlreadyExistsHTTPError,
     ScheduleNotFoundError,
@@ -65,6 +69,8 @@ async def send_one_notification(
         raise ScheduleAlreadyExistsHTTPError from exc
     except ValueOutOfRangeError as exc:
         raise ValueOutOfRangeHTTPError(detail=exc.detail) from exc
+    except NotificationExistsError as exc:
+        raise NotificationExistsHTTPError from exc
     except TemplateNotFoundError as exc:
         raise TemplateNotFoundHTTPError from exc
     except MissingTemplateVariablesError as exc:
@@ -96,6 +102,8 @@ async def send_many_notifications(
         )
     except ScheduleAlreadyExistsError as exc:
         raise ScheduleAlreadyExistsHTTPError from exc
+    except NotificationExistsError as exc:
+        raise NotificationExistsHTTPError from exc
     except ValueOutOfRangeError as exc:
         raise ValueOutOfRangeHTTPError(detail=exc.detail) from exc
     except TemplateNotFoundError as exc:
@@ -107,12 +115,12 @@ async def send_many_notifications(
     return {"status": "OK", "data": response}
 
 
+@cache(expire=120)
 @router.get(
     "/getSchedules",
     summary="Получить расписание уведомлений",
     description=DESCR_API_GET_SCHEDULES,
 )
-# @cache(expire=120)
 async def get_schedules_list(
     db: DBDep,
     user_meta: UserMetaDep,
@@ -121,6 +129,45 @@ async def get_schedules_list(
 ):
     try:
         total_count, response = await NotificationService(db).get_schedules(
+            user_meta=user_meta,
+            limit=pagination.limit,
+            offset=pagination.offset,
+            date_begin=filtration.date_begin,
+            date_end=filtration.date_end,
+        )
+    except ValueOutOfRangeError as exc:
+        raise ValueOutOfRangeHTTPError(detail=exc.detail) from exc
+
+    resp = {
+        "status": "OK",
+        "page": pagination.page,
+        "per_page": pagination.limit,
+        "total_count": total_count,
+        "total_pages": math.ceil(total_count / pagination.limit),
+        "data": response,
+    }
+
+    if filtration.date_begin and filtration.date_end:
+        resp["period"] = (
+            {"period_start": filtration.date_begin, "period_end": filtration.date_end},
+        )
+    return resp
+
+
+@cache(expire=120)
+@router.get(
+    "/getHistory",
+    summary="Получить историю отправленных уведомлений",
+    description=DESCR_API_GET_HISTORY,
+)
+async def get_notifications_history(
+    db: DBDep,
+    user_meta: UserMetaDep,
+    pagination: PaginationDep,
+    filtration: ScheduleFiltrationDep,
+):
+    try:
+        total_count, response = await NotificationService(db).get_history(
             user_meta=user_meta,
             limit=pagination.limit,
             offset=pagination.offset,

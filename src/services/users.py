@@ -56,14 +56,14 @@ class UserService(BaseService):
 
     async def edit_user(self, user_data: UserUpdateDTO, user_meta: dict):
         try:
-            await self.db.users.get_one(id=user_meta.get("user_id", 0))
+            await self.db.users.get_one(id=user_meta["user_id"])
         except ObjectNotFoundError as exc:
             raise UserNotFoundError from exc
 
         if not user_meta.get("is_admin"):
             user_data = UserUpdateDTO(**user_data.model_dump(exclude={"role"}))
 
-        await self.db.users.edit(user_data, id=user_meta.get("user_id", 0))
+        await self.db.users.edit(user_data, id=user_meta["user_id"])
         await self.db.commit()
 
     async def login_user(

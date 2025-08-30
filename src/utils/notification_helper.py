@@ -19,7 +19,7 @@ class NotificationHelper:
 
     async def _insert_result_into_database(self, data: AddLogDTO):
         async with DB_Manager(session_factory=sessionmaker_null_pool) as db:
-            await db.notification_logs.add(data)
+            await db.notification_logs.add_or_edit(data)
             await db.commit()
 
     async def log_result(
@@ -27,10 +27,10 @@ class NotificationHelper:
         status: NotificationStatus = NotificationStatus.FAILURE,
         details: str | None = None,
     ):
+        self.log_schema.status = status
         new_log_schema = AddLogDTO(
             **self.log_schema.model_dump(),
             details=details,
-            status=status,
         )
         logger.info("New log, after sending notification: %s", new_log_schema)
         await self._insert_result_into_database(new_log_schema)

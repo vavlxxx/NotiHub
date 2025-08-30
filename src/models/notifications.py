@@ -5,6 +5,7 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -22,6 +23,9 @@ if typing.TYPE_CHECKING:
 
 
 class NotificationLog(Base):
+    sender_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", onupdate="cascade", ondelete="cascade")
+    )
     contact_data: Mapped[str]
     message: Mapped[str] = mapped_column(Text, nullable=False)
     provider_name: Mapped[ContactChannelType] = mapped_column(
@@ -33,11 +37,25 @@ class NotificationLog(Base):
     status: Mapped[NotificationStatus] = mapped_column(
         ENUM(NotificationStatus), nullable=False
     )
-    delivered_at: Mapped[datetime] = mapped_column(
+    delivered_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None
+    )
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now(), server_default=func.now()
     )
 
     __tablename__ = "notification_logs"
+    __table_args__ = (
+        Index(
+            "unique_pending_notifications",
+            "sender_id",
+            "contact_data",
+            "message",
+            "provider_name",
+            unique=True,
+            postgresql_where="status = 'PENDING'",
+        ),
+    )
 
 
 class NotificationSchedule(Base):

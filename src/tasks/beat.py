@@ -31,6 +31,7 @@ async def _process_scheduled_notifications():
             logger.info("Got schedule to handle: %s", schedule)
             CELERY_TASKS[schedule.channel.channel_type].delay(
                 RequestAddLogDTO(
+                    sender_id=schedule.channel.user_id,
                     message=schedule.message,
                     contact_data=schedule.channel.contact_value,
                     provider_name=schedule.channel.channel_type,

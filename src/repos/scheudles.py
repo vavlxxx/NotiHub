@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import Sequence
 
-from sqlalchemy import CursorResult, delete, func, select
+from sqlalchemy import CursorResult, delete, desc, func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import joinedload
@@ -19,7 +19,7 @@ class ScheduleRepository(BaseRepository):
     schema = ScheduleDTO
     model = NotificationSchedule
 
-    async def add_bulk_schedules(self, data: Sequence[BaseDTO]):
+    async def add_bulk(self, data: Sequence[BaseDTO]):
         add_obj_stmt = pg_insert(self.model).values(
             [item.model_dump() for item in data]
         )
@@ -34,7 +34,9 @@ class ScheduleRepository(BaseRepository):
                 ),
             },
         )
-        await self.session.execute(add_obj_stmt)
+        add_obj_stmt = add_obj_stmt.returning(self.model.id)
+        result = await self.session.execute(add_obj_stmt)
+        return result.scalars().all()
 
     async def get_current_schedules_to_perform(
         self, *filter, **filter_by
@@ -58,7 +60,7 @@ class ScheduleRepository(BaseRepository):
         self,
         limit: int,
         offset: int,
-        user_id: int | None,
+        user_id: int,
         date_begin: datetime | None = None,
         date_end: datetime | None = None,
     ) -> tuple[int, list[ScheduleDTO]]:
@@ -77,6 +79,7 @@ class ScheduleRepository(BaseRepository):
                 UserContactChannel, self.model.channel_id == UserContactChannel.id
             )  # type: ignore
             .filter_by(user_id=user_id)
+            .order_by(desc(self.model.next_execution_at))
         )
 
         if date_begin and date_end:
@@ -103,10 +106,10 @@ class ScheduleRepository(BaseRepository):
             return total_count, []
 
         total_count = rows[0].total_count
-        templates: list[ScheduleDTO] = [
+        scheudles: list[ScheduleDTO] = [
             self.schema.model_validate(row[0]) for row in rows
         ]
-        return total_count, templates
+        return total_count, scheudles
 
     async def delete_by_user(self, schedule_id: int, user_id: int):
         query_channels_ids_by_user = (

@@ -35,7 +35,7 @@ class TemplateService(BaseService):
             limit=limit,
             offset=offset,
             category_id=category_id,
-            user_id=user_meta.get("user_id", 0) if only_mine else None,
+            user_id=user_meta["user_id"] if only_mine else None,
         )
         return total_count, templates
 
@@ -77,7 +77,7 @@ class TemplateService(BaseService):
                 raise CategoryNotFoundError from exc
 
         new_template_schema = AddTemplateDTO(
-            **data.model_dump(), user_id=user_meta.get("user_id", 0)
+            **data.model_dump(), user_id=user_meta["user_id"]
         )
 
         try:
@@ -101,7 +101,7 @@ class TemplateService(BaseService):
 
         try:
             await self.db.templates.edit(
-                user_id=user_meta.get("user_id", 0),
+                user_id=user_meta["user_id"],
                 id=template_id,
                 data=data,
             )
@@ -111,9 +111,7 @@ class TemplateService(BaseService):
 
     async def delete_template(self, template_id: int, user_meta: dict) -> None:
         try:
-            await self.db.templates.delete(
-                user_id=user_meta.get("user_id", 0), id=template_id
-            )
+            await self.db.templates.delete(user_id=user_meta["user_id"], id=template_id)
         except ObjectNotFoundError as exc:
             raise TemplateNotFoundError from exc
         await self.db.commit()

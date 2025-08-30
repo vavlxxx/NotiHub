@@ -31,6 +31,10 @@ class ChannelDTO(BaseDTO):
     channel_type: ContactChannelType
 
 
+class ChannelWithUserDTO(ChannelDTO):
+    user_id: int
+
+
 class UpdateChannelDTO(BaseDTO):
     contact_value: EmailStr | str | None = None
     channel_type: ContactChannelType | None = None

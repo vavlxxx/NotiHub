@@ -86,7 +86,7 @@ async def edit_user(
 )
 async def get_profile(db: DBDep, user_meta: UserMetaDep):
     try:
-        user = await UserService(db).get_user(id=user_meta.get("user_id", 0))  # type: ignore
+        user = await UserService(db).get_user(id=user_meta["user_id"])  # type: ignore
     except UserNotFoundError as exc:
         raise UserNotFoundHTTPError from exc
     return {"status": "OK", "data": user}

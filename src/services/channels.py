@@ -24,9 +24,7 @@ class ChannelService(BaseService):
     async def add_channel(
         self, data: RequestAddChannelDTO, user_meta: dict
     ) -> ChannelDTO:
-        new_data = AddChannelDTO(
-            **data.model_dump(), user_id=user_meta.get("user_id", 0)
-        )
+        new_data = AddChannelDTO(**data.model_dump(), user_id=user_meta["user_id"])
         try:
             channel: ChannelDTO = await self.db.channels.add(new_data)
         except ObjectExistsError as exc:
@@ -49,7 +47,7 @@ class ChannelService(BaseService):
 
         try:
             channel_before_update: ChannelDTO = await self.db.channels.get_one(
-                id=channel_id, user_id=user_meta.get("user_id", 0)
+                id=channel_id, user_id=user_meta["user_id"]
             )
             data_before_update: dict[str, Any] = channel_before_update.model_dump(
                 exclude={"user_id"}
@@ -64,7 +62,7 @@ class ChannelService(BaseService):
             channel: ChannelDTO = await self.db.channels.edit(
                 data=data,
                 id=channel_id,
-                user_id=user_meta.get("user_id", 0),
+                user_id=user_meta["user_id"],
                 ensure_existence=False,
             )
         except ObjectExistsError as exc:
@@ -84,9 +82,7 @@ class ChannelService(BaseService):
             )
 
         try:
-            await self.db.channels.delete(
-                id=channel_id, user_id=user_meta.get("user_id", 0)
-            )
+            await self.db.channels.delete(id=channel_id, user_id=user_meta["user_id"])
         except ObjectNotFoundError as exc:
             raise ChannelNotFoundError from exc
         await self.db.commit()

@@ -3,25 +3,27 @@ from datetime import datetime
 from croniter import croniter
 from pydantic import Field, FutureDatetime, model_validator
 
-from src.schemas.channels import ChannelDTO
+from src.schemas.channels import ChannelWithUserDTO
+
 from src.schemas.base import BaseDTO
 from src.utils.enums import ContactChannelType, NotificationStatus, ScheduleType
 
 
 class RequestAddLogDTO(BaseDTO):
+    sender_id: int
     message: str
     contact_data: str
+    status: NotificationStatus = NotificationStatus.PENDING
     provider_name: ContactChannelType
 
 
 class AddLogDTO(RequestAddLogDTO):
-    status: NotificationStatus = NotificationStatus.FAILURE
     details: str | None = None
 
 
 class LogDTO(AddLogDTO):
     id: int
-    delivered_at: datetime
+    delivered_at: datetime | None
 
 
 class _ScheduleDTO(BaseDTO):
@@ -87,4 +89,4 @@ class UpdateScheduleDTO(BaseDTO):
 
 
 class ScheduleWithChannelsDTO(ScheduleDTO):
-    channel: ChannelDTO
+    channel: ChannelWithUserDTO

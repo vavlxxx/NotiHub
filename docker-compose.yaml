@@ -17,9 +17,6 @@ services:
   notihub_celery_beat_service:
     container_name: "notihub_celery_beat"
     image: "notihub_img"
-    build: 
-      context: .
-      dockerfile: "Dockerfile"
     env_file:
       - ".env.docker"
     networks:
@@ -27,13 +24,11 @@ services:
     command: "poetry run celery --app=src.tasks.app:celery_app beat -l INFO"
     depends_on:
       - notihub_cache_service
+      - notihub_api_service
 
   notihub_celery_worker_service:
     container_name: "notihub_celery_worker"
     image: "notihub_img"
-    build: 
-      context: .
-      dockerfile: "Dockerfile"
     env_file:
       - ".env.docker"
     networks:
@@ -41,6 +36,7 @@ services:
     command: "poetry run celery --app=src.tasks.app:celery_app worker -l INFO"
     depends_on:
       - notihub_cache_service
+      - notihub_api_service
 
   notihub_cache_service:
     container_name: "notihub_redis"
@@ -82,4 +78,4 @@ volumes:
 
 networks:
   notihub_net:
-    external: "true"
+    driver: "bridge"
