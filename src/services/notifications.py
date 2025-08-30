@@ -182,12 +182,12 @@ class NotificationService(BaseService):
             await self.db.commit()
             for penging in pendings:
                 CELERY_TASKS[penging.provider_name].delay(penging.model_dump())
-            results["pending"].extend(logs_ids)
+            results["pending_ids"].extend(logs_ids)
 
         if schedule:
             schedules_ids = await self.db.schedules.add_bulk(schedule)
             await self.db.commit()
-            results["scheduled"].extend(schedules_ids)
+            results["scheduled_ids"].extend(schedules_ids)
 
         return results
 
@@ -198,10 +198,10 @@ class NotificationService(BaseService):
                 "period_start": date_begin,
                 "period_end": date_end,
             }
-            notification_logs: list[
-                LogDTO
-            ] = await self.db.notification_logs.get_all_filtered_by_date(
-                date_begin=date_begin, date_end=date_end
+            notification_logs: list[LogDTO] = (
+                await self.db.notification_logs.get_all_filtered_by_date(
+                    date_begin=date_begin, date_end=date_end
+                )
             )
         else:
             notification_logs: list[LogDTO] = await self.db.notification_logs.get_all()

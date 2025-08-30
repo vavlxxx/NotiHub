@@ -6,9 +6,10 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import DBAPIError
 from asyncpg import DataError
 
+from src.db import engine
 from src.schemas.base import BaseDTO
 from src.repos.base import BaseRepository
-from src.schemas.notifications import LogDTO, RequestAddLogDTO
+from src.schemas.notifications import AddLogDTO, LogDTO, RequestAddLogDTO
 from src.models.notifications import NotificationLog
 from src.utils.enums import NotificationStatus
 from src.utils.exceptions import ValueOutOfRangeError
@@ -25,9 +26,10 @@ class NotificationLogRepository(BaseRepository):
         result = await self.session.execute(query)
         return [self.schema.model_validate(obj) for obj in result.scalars().all()]
 
-    async def add_or_edit(self, data: RequestAddLogDTO, **params) -> int:
+    async def add_or_edit(self, data: RequestAddLogDTO | AddLogDTO, **params) -> int:
         query = select(self.model).filter_by(
-            **data.model_dump(exclude={"status"}), status=NotificationStatus.PENDING
+            **data.model_dump(exclude={"status", "details"}),
+            status=NotificationStatus.PENDING.value,
         )
 
         result = await self.session.execute(query)
@@ -107,6 +109,7 @@ class NotificationLogRepository(BaseRepository):
             ],
             index_where=text("status = 'PENDING'"),
         )
-        add_obj_stmt = add_obj_stmt.returning(self.model.id)
+        add_obj_stmt = add_obj_stmt.returning(self.model)
         result = await self.session.execute(add_obj_stmt)
-        return result.scalars().all()
+        objs = result.scalars().all()
+        return objs
