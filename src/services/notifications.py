@@ -31,7 +31,6 @@ from src.schemas.notifications import (
 from src.utils.exceptions import (
     ChannelNotFoundError,
     ForbiddenHTMLTemplateError,
-    ObjectExistsError,
     NotificationExistsError,
     ScheduleNotFoundError,
     MissingTemplateVariablesError,
@@ -177,6 +176,9 @@ class NotificationService(BaseService):
 
         if pendings:
             logs_ids = await self.db.notification_logs.add_bulk(pendings)
+            if not len(logs_ids):
+                raise NotificationExistsError
+
             await self.db.commit()
             for penging in pendings:
                 CELERY_TASKS[penging.provider_name].delay(penging.model_dump())
@@ -196,10 +198,10 @@ class NotificationService(BaseService):
                 "period_start": date_begin,
                 "period_end": date_end,
             }
-            notification_logs: list[LogDTO] = (
-                await self.db.notification_logs.get_all_filtered_by_date(
-                    date_begin=date_begin, date_end=date_end
-                )
+            notification_logs: list[
+                LogDTO
+            ] = await self.db.notification_logs.get_all_filtered_by_date(
+                date_begin=date_begin, date_end=date_end
             )
         else:
             notification_logs: list[LogDTO] = await self.db.notification_logs.get_all()
