@@ -198,10 +198,10 @@ class NotificationService(BaseService):
                 "period_start": date_begin,
                 "period_end": date_end,
             }
-            notification_logs: list[LogDTO] = (
-                await self.db.notification_logs.get_all_filtered_by_date(
-                    date_begin=date_begin, date_end=date_end
-                )
+            notification_logs: list[
+                LogDTO
+            ] = await self.db.notification_logs.get_all_filtered_by_date(
+                date_begin=date_begin, date_end=date_end
             )
         else:
             notification_logs: list[LogDTO] = await self.db.notification_logs.get_all()

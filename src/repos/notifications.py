@@ -6,7 +6,6 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import DBAPIError
 from asyncpg import DataError
 
-from src.db import engine
 from src.schemas.base import BaseDTO
 from src.repos.base import BaseRepository
 from src.schemas.notifications import AddLogDTO, LogDTO, RequestAddLogDTO
