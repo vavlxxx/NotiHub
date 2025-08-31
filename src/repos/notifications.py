@@ -8,7 +8,7 @@ from asyncpg import DataError
 
 from src.schemas.base import BaseDTO
 from src.repos.base import BaseRepository
-from src.schemas.notifications import AddLogDTO, LogDTO, RequestAddLogDTO
+from src.schemas.notifications import AddLogDTO, LogDTO
 from src.models.notifications import NotificationLog
 from src.utils.enums import NotificationStatus
 from src.utils.exceptions import ValueOutOfRangeError
