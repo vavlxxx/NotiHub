@@ -1,10 +1,26 @@
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+
+before_script:
+  - docker container prune -f --filter "until=1h"
+  - docker ps -a --filter name=runner --filter status=exited -q | head -10 | xargs -r docker rm || true
+
 stages:
+  - cleanup_before
   - build
   - lint_format_typing_check
   - migrations
   - tests
   - deploy
-  - cleanup
+  - cleanup_after
+
+cleanup-before-job:
+  stage: cleanup_before
+  script:
+    - docker ps -a --filter name=runner --filter status=exited -q | xargs -r docker rm || true
+    - docker system prune -f --filter "until=2h"
+  allow_failure: true
 
 build-job:
   stage: build
@@ -51,10 +67,12 @@ deploy-job:
     - docker exec notihub_nginx nginx -s reload
 
 cleanup-job:
-  stage: cleanup
+  stage: cleanup_after
   script:
     - chmod +x ./delete-images-before.sh
     - ./delete-images-before.sh notihub_img:latest
-    - docker rmi $(docker images -f dangling=true -q)
-  when: on_success
+    - docker ps -a --filter name=runner --filter status=exited -q | xargs -r docker rm || true
+    - docker image prune -f
+    - docker volume prune -f
+  when: always
   allow_failure: true
