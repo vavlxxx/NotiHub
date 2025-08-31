@@ -64,6 +64,8 @@ async def add_category(
         raise CategoryNotFoundHTTPError from exc
     except CategoryExistsError as exc:
         raise CategoryExistsHTTPError from exc
+    except ValueOutOfRangeError as exc:
+        raise ValueOutOfRangeHTTPError from exc
 
     return {"data": category}
 
@@ -87,7 +89,7 @@ async def update_category(
     except CategoryExistsError as exc:
         raise CategoryExistsHTTPError from exc
     except ValueOutOfRangeError as exc:
-        raise ValueOutOfRangeHTTPError(detail=exc.detail) from exc
+        raise ValueOutOfRangeHTTPError from exc
 
     return {"status": "OK"}
 
@@ -108,6 +110,6 @@ async def delete_category(
     except CategoryInUseError as exc:
         raise CategoryInUseHTTPError(detail=exc.detail) from exc
     except ValueOutOfRangeError as exc:
-        raise ValueOutOfRangeHTTPError(detail=exc.detail) from exc
+        raise ValueOutOfRangeHTTPError from exc
 
     return {"status": "OK"}
