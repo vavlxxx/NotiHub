@@ -15,8 +15,4 @@ EXAMPLE_CHANNELS: Dict[str, Example] = {
         "summary": "PUSH",
         "value": {"contact_value": "topic_from_ntfy", "channel_type": "PUSH"},
     },
-    "SMS": {
-        "summary": "SMS",
-        "value": {"contact_value": "phone_number", "channel_type": "SMS"},
-    },
 }

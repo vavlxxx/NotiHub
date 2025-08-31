@@ -8,6 +8,7 @@ EXAMPLE_CATEGORIES: Dict[str, Example] = {
         "value": {
             "title": "Электронная коммерция",
             "description": "Шаблоны для интернет-магазинов: заказы, оплата, доставка",
+            "parent_id": None,
         },
     },
     "USER_MANAGEMENT": {
@@ -15,6 +16,7 @@ EXAMPLE_CATEGORIES: Dict[str, Example] = {
         "value": {
             "title": "Управление пользователями",
             "description": "Регистрация, авторизация, восстановление паролей",
+            "parent_id": None,
         },
     },
     "HEALTHCARE": {
@@ -22,6 +24,7 @@ EXAMPLE_CATEGORIES: Dict[str, Example] = {
         "value": {
             "title": "Медицинские услуги",
             "description": "Записи к врачам, результаты анализов, напоминания",
+            "parent_id": None,
         },
     },
     "FINANCE": {
@@ -29,6 +32,7 @@ EXAMPLE_CATEGORIES: Dict[str, Example] = {
         "value": {
             "title": "Финансовые операции",
             "description": "Платежи, переводы, уведомления о транзакциях",
+            "parent_id": None,
         },
     },
     "MARKETING": {
@@ -36,6 +40,7 @@ EXAMPLE_CATEGORIES: Dict[str, Example] = {
         "value": {
             "title": "Маркетинг и промо",
             "description": "Рекламные рассылки, акции, персональные предложения",
+            "parent_id": None,
         },
     },
     "SYSTEM": {
@@ -43,6 +48,7 @@ EXAMPLE_CATEGORIES: Dict[str, Example] = {
         "value": {
             "title": "Системные уведомления",
             "description": "Техническая информация, обновления, регламентные работы",
+            "parent_id": None,
         },
     },
 }

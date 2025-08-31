@@ -50,9 +50,18 @@ class ChannelService(BaseService):
                 id=channel_id, user_id=user_meta["user_id"]
             )
             data_before_update: dict[str, Any] = channel_before_update.model_dump(
-                exclude={"user_id"}
+                exclude={"user_id", "id"}
             )
-            RequestAddChannelDTO(**ChainMap(data.model_dump(), data_before_update))
+
+            exclude = set()
+            if data.channel_type is None:
+                exclude.add("channel_type")
+            if data.contact_value is None:
+                exclude.add("contact_value")
+
+            RequestAddChannelDTO(
+                **ChainMap(data.model_dump(exclude=exclude), data_before_update)
+            )
         except ObjectNotFoundError as exc:
             raise ChannelNotFoundError from exc
         except ValidationError as exc:

@@ -62,6 +62,15 @@ class CategoryService(BaseService):
                 + ", ".join(map(str, [template.id for template in templates]))
             )
 
+        children: list[CategoryDTO] = await self.db.categories.get_all_filtered(
+            parent_id=category_id
+        )
+        if children:
+            raise CategoryInUseError(
+                detail="Данная категория используется в качестве родительской для других категорий с id: "
+                + ", ".join(map(str, [child.id for child in children]))
+            )
+
         try:
             await self.db.categories.delete(id=category_id)
         except ObjectNotFoundError as exc:
