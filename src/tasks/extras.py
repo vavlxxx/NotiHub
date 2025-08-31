@@ -11,5 +11,5 @@ CELERY_TASKS = {
     ContactChannelType.EMAIL: send_email_notification,
     ContactChannelType.TELEGRAM: send_telegram_notification,
     ContactChannelType.PUSH: send_push_notification,
-    ContactChannelType.SMS: send_sms_notification,
+    # ContactChannelType.SMS: send_sms_notification,
 }

@@ -113,6 +113,7 @@ app.add_middleware(
 @app.post("/webhook", include_in_schema=False)
 async def webhook_handler(request: Request):
     webhook_data = await request.json()
+    logger.info(f"Webhook has been called with data: {webhook_data}")
     update = Update(**webhook_data)
     await dp.feed_update(bot, update)
     return {"status": "OK"}

@@ -5,7 +5,7 @@ class ContactChannelType(str, Enum):
     EMAIL = "EMAIL"
     TELEGRAM = "TELEGRAM"
     PUSH = "PUSH"
-    SMS = "SMS"
+    # SMS = "SMS"
 
 
 class UserRole(str, Enum):

@@ -29,25 +29,25 @@ class RequestAddChannelDTO(BaseDTO):
             case ContactChannelType.EMAIL:
                 if not validate_email(cv):
                     raise ValueError("email must be valid string with @ and domain")
-            case ContactChannelType.SMS:
-                try:
-                    from phonenumbers import (
-                        parse,
-                        is_valid_number,
-                        format_number,
-                        PhoneNumberFormat,
-                    )
+            # case ContactChannelType.SMS:
+            #     try:
+            #         from phonenumbers import (
+            #             parse,
+            #             is_valid_number,
+            #             format_number,
+            #             PhoneNumberFormat,
+            #         )
 
-                    parsed = parse(self.contact_value, "RU")
-                    if not is_valid_number(parsed):
-                        raise ValueError("Неверный номер телефона")
-                    formatted = format_number(parsed, PhoneNumberFormat.E164)
-                    self.contact_value = formatted.lstrip("+")
+            #         parsed = parse(self.contact_value, "RU")
+            #         if not is_valid_number(parsed):
+            #             raise ValueError("Неверный номер телефона")
+            #         formatted = format_number(parsed, PhoneNumberFormat.E164)
+            #         self.contact_value = formatted.lstrip("+")
 
-                except Exception as exc:
-                    raise ValueError(
-                        f"phone number must be valid (E.164 or local with default_region): {exc}"
-                    )
+            #     except Exception as exc:
+            #         raise ValueError(
+            #             f"phone number must be valid (E.164 or local with default_region): {exc}"
+            #         )
 
             case ContactChannelType.PUSH:
                 pass
