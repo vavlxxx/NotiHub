@@ -13,6 +13,7 @@ build-job:
     - cp ${ENV_TEST} .env.test
   script:
     - docker build -t notihub_img .
+    - docker rmi $(docker images -f dangling=true -q)
 
 lint-job:
   stage: lint_format_typing_check
