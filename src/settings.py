@@ -40,6 +40,9 @@ class Settings:
     TELEGRAM_WEBHOOK_URL: str
     TELEGRAM_ADMIN_CONTACT: str
 
+    SMSRU_API_KEY: str
+    SMSRU_SEND_METHOD: str
+
     MODE: Literal["TEST", "DEV", "PROD"]
 
     APP_NAME: str = "🔔 NotiHub"
@@ -84,6 +87,8 @@ class Settings:
             TELEGRAM_ADMIN_CONTACT=cls._get_env_var(
                 "TELEGRAM_ADMIN_CONTACT", to_cast=str
             ),
+            SMSRU_API_KEY=cls._get_env_var("SMSRU_API_KEY", to_cast=str),
+            SMSRU_SEND_METHOD=cls._get_env_var("SMSRU_SEND_METHOD", to_cast=str),
             MODE=cls._get_env_var("MODE", to_cast=str),
         )
 

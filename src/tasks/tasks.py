@@ -202,3 +202,61 @@ async def send_push(
 
     finally:
         await NH(log_schema).log_result(status=status, details=details)
+
+
+@celery_app.task(name="send_sms")
+def send_sms_notification(log_data: dict):
+    log_schema = RequestAddLogDTO(**log_data)
+    asyncio.run(send_sms(log_schema))
+
+
+async def send_sms(
+    log_schema: RequestAddLogDTO,
+    status: NotificationStatus = NotificationStatus.FAILURE,
+    details: str | None = None,
+):
+    method_url = settings.SMSRU_SEND_METHOD
+    params = {
+        "api_id": settings.SMSRU_API_KEY,
+        "to": log_schema.contact_data,
+        "msg": log_schema.message,
+        "json": 1,
+    }
+
+    try:
+        if NH.detect_content_type(log_schema.message) == ContentType.HTML:
+            raise ForbiddenHTMLTemplateError
+
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                url=method_url,
+                params=params,
+            ) as response:
+                data = await response.json()
+                print("DATA", data)
+                if response.status == 200 and data.get("status") == "OK":
+                    status = NotificationStatus.SUCCESS
+                    logger.info(
+                        "Successfully sent SMS to: %s",
+                        log_schema.contact_data,
+                    )
+                    return
+
+                data = await response.json()
+                details = data.get("status_text", "Unknown error")
+                logger.warning(
+                    "Failure during sending SMS to: %s, response: %s",
+                    log_schema.contact_data,
+                    details,
+                )
+
+    except ForbiddenHTMLTemplateError:
+        details = "HTML templates are not supported for SMS notifications"
+        logger.error(details)
+    except Exception as exc:
+        details = f"Unexpected Error: {str(exc)}"
+        logger.error("Unexpected error during SMS sending: %s", exc)
+        raise exc
+
+    finally:
+        await NH(log_schema).log_result(status=status, details=details)

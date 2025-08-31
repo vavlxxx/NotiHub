@@ -25,7 +25,7 @@ class NotificationLogRepository(BaseRepository):
         result = await self.session.execute(query)
         return [self.schema.model_validate(obj) for obj in result.scalars().all()]
 
-    async def add_or_edit(self, data: RequestAddLogDTO | AddLogDTO, **params) -> int:
+    async def add_or_edit(self, data: AddLogDTO, **params) -> int:
         query = select(self.model).filter_by(
             **data.model_dump(exclude={"status", "details"}),
             status=NotificationStatus.PENDING.value,
@@ -47,7 +47,7 @@ class NotificationLogRepository(BaseRepository):
             upd = (
                 update(self.model)
                 .where(self.model.id == notification_id)
-                .values(status=data.status, **params)
+                .values(status=data.status, details=data.details, **params)
             )
             await self.session.execute(upd)
         return notification_id
@@ -108,7 +108,7 @@ class NotificationLogRepository(BaseRepository):
             ],
             index_where=text("status = 'PENDING'"),
         )
-        add_obj_stmt = add_obj_stmt.returning(self.model)
+        add_obj_stmt = add_obj_stmt.returning(self.model.id)
         result = await self.session.execute(add_obj_stmt)
         objs = result.scalars().all()
         return objs
