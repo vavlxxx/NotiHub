@@ -8,6 +8,7 @@ before_script:
 
 stages:
   - cleanup_before
+  - setup
   - build
   - lint_format_typing_check
   - migrations
@@ -22,6 +23,13 @@ cleanup-before-job:
     - docker system prune -f --filter "until=2h"
   allow_failure: true
 
+setup-network:
+  stage: setup
+  script:
+    - docker network create notihub_net || echo "Network already exists"
+    - docker network ls --filter name=notihub_net
+  allow_failure: false
+
 build-job:
   stage: build
   before_script:
@@ -29,7 +37,6 @@ build-job:
     - cp ${ENV_TEST} .env.test
   script:
     - docker build -t notihub_img .
-    - docker rmi $(docker images -f dangling=true -q)
 
 lint-job:
   stage: lint_format_typing_check
