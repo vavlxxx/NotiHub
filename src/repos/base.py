@@ -2,25 +2,25 @@ from typing import Any, Generic, Sequence, TypeVar
 
 from asyncpg import UniqueViolationError
 from asyncpg.exceptions import DataError
-from sqlalchemy import delete, select, insert, update
-from sqlalchemy.exc import NoResultFound, IntegrityError, DBAPIError
+from sqlalchemy import delete, insert, select, update
+from sqlalchemy.exc import DBAPIError, IntegrityError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.base import Base
 from src.schemas.base import BaseDTO
 from src.utils.exceptions import (
-    ObjectNotFoundError,
     ObjectExistsError,
+    ObjectNotFoundError,
     ValueOutOfRangeError,
 )
 
-
 ModelType = TypeVar("ModelType", bound=Base)
+SchemaType = TypeVar("SchemaType", bound=BaseDTO)
 
 
-class BaseRepository(Generic[ModelType]):
+class BaseRepository(Generic[ModelType, SchemaType]):
     model: type[ModelType]
-    schema: type[BaseDTO]
+    schema: type[SchemaType]
     session: AsyncSession
 
     def __init__(self, session: AsyncSession):

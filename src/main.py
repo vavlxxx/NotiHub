@@ -1,6 +1,7 @@
 import os
 import sys
 from pathlib import Path
+from typing import Any, AsyncGenerator
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
@@ -15,22 +16,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 
-from src.utils.db_manager import DB_Manager
-from src.utils.redis_manager import redis_manager
-from src.utils.enums import UserRole
-from src.utils.exceptions import UserExistsError
+from src.api.categories import router as router_categories
+from src.api.channels import router as router_channels
+from src.api.docs import router as router_docs
+from src.api.notifications import router as router_notifications
+from src.api.templates import router as router_templates
+from src.api.users import router as router_users
+from src.bot.bot import bot, dp
 from src.db import sessionmaker
-from src.settings import settings
 from src.schemas.users import RequestRegisterUserDTO
 from src.services.users import UserService
-from src.bot.bot import bot, dp
-
-from src.api.templates import router as router_templates
-from src.api.categories import router as router_categories
-from src.api.docs import router as router_docs
-from src.api.users import router as router_users
-from src.api.channels import router as router_channels
-from src.api.notifications import router as router_notifications
+from src.settings import settings
+from src.utils.db_manager import DB_Manager
+from src.utils.enums import UserRole
+from src.utils.exceptions import UserExistsError
+from src.utils.redis_manager import redis_manager
 
 
 def configurate_logging(root_logger_name: str):
@@ -47,7 +47,7 @@ logger = configurate_logging("src")
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:
     async with DB_Manager(sessionmaker) as db:
         await db.check_connection()
         logger.info("Successfully connected to DB")
@@ -93,7 +93,12 @@ async def lifespan(app: FastAPI):
     logger.info("Connection to Redis has been closed")
 
 
-app = FastAPI(title=settings.APP_NAME, lifespan=lifespan, docs_url=None, redoc_url=None)
+app = FastAPI(
+    title=settings.APP_NAME,
+    lifespan=lifespan,
+    docs_url=None,
+    redoc_url=None,
+)
 app.include_router(router=router_docs)
 app.include_router(router=router_templates)
 app.include_router(router=router_categories)
@@ -114,12 +119,15 @@ app.add_middleware(
 async def webhook_handler(request: Request):
     webhook_data = await request.json()
     logger.info(f"Webhook has been called with data: {webhook_data}")
-    update = Update(**webhook_data)
+    update: Update = Update(**webhook_data)
     await dp.feed_update(bot, update)
     return {"status": "OK"}
 
 
 if __name__ == "__main__":
     uvicorn.run(
-        "main:app", reload=True, host=settings.UVICORN_HOST, port=settings.UVICORN_PORT
+        "main:app",
+        reload=True,
+        host=settings.UVICORN_HOST,
+        port=settings.UVICORN_PORT,
     )

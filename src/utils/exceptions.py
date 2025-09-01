@@ -1,4 +1,4 @@
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 
 from src.settings import settings
 
@@ -104,7 +104,7 @@ class ForbiddenHTMLTemplateError(NotiHubBaseError):
 
 
 class NotiHubBaseHTTPError(HTTPException):
-    status_code = 500
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     detail = "Неизвестная ошибка HTTP"
 
     def __init__(self, *args, **kwargs):
@@ -118,7 +118,7 @@ class WebhookSetupError(NotiHubBaseHTTPError): ...
 
 
 class ObjectNotFoundHTTPError(NotiHubBaseHTTPError):
-    status_code = 404
+    status_code = status.HTTP_404_NOT_FOUND
     detail = "Объект не найден"
 
 
@@ -139,42 +139,42 @@ class ChannelNotFoundHTTPError(ObjectNotFoundHTTPError):
 
 
 class ChannelValidationHTTPError(NotiHubBaseHTTPError):
-    status_code = 422
+    status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
     detail = "Неверные данные контактного канала"
 
 
 class NotAuthenticatedError(NotiHubBaseHTTPError):
-    status_code = 401
+    status_code = status.HTTP_401_UNAUTHORIZED
     detail = "Пользователь не аутентифицирован"
 
 
 class LoginDataHTTPError(NotiHubBaseHTTPError):
-    status_code = 401
+    status_code = status.HTTP_401_UNAUTHORIZED
     detail = "Неверные логин или пароль"
 
 
 class TokenUpdateHTTPError(NotiHubBaseHTTPError):
-    status_code = 401
+    status_code = status.HTTP_401_UNAUTHORIZED
     detail = f"Новый токен доступа можно получать только раз в {settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES / 60:.1f} ч., либо выйдя из текущего аккаунта"
 
 
 class InvalidTokenHTTPError(NotiHubBaseHTTPError):
-    status_code = 401
+    status_code = status.HTTP_401_UNAUTHORIZED
     detail = "Неверный токен"
 
 
 class ExpiredTokenHTTPError(NotiHubBaseHTTPError):
-    status_code = 401
+    status_code = status.HTTP_401_UNAUTHORIZED
     detail = "Срок действия токена истёк. Пожалуйста пройдите аутентификацию заново"
 
 
 class ObjectExistsHTTPError(NotiHubBaseHTTPError):
-    status_code = 409
+    status_code = status.HTTP_409_CONFLICT
     detail = "Объект уже существует"
 
 
 class UserExistsHTTPError(NotiHubBaseHTTPError):
-    status_code = 409
+    status_code = status.HTTP_409_CONFLICT
     detail = "Пользователь с таким логином уже существует"
 
 
@@ -191,30 +191,30 @@ class TemplateExistsHTTPError(ObjectExistsHTTPError):
 
 
 class MissingTemplateVariablesHTTPError(NotiHubBaseHTTPError):
-    status_code = 422
+    status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
 class OnlyStaffHTTPError(NotiHubBaseHTTPError):
-    status_code = 403
+    status_code = status.HTTP_403_FORBIDDEN
     detail = "Доступно только для персонала"
 
 
 class ChannelInUseHTTPError(NotiHubBaseHTTPError):
-    status_code = 409
+    status_code = status.HTTP_409_CONFLICT
 
 
 class TemplateSyntaxCheckHTTPError(NotiHubBaseHTTPError):
-    status_code = 422
+    status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
     detail = "Неверная синтаксис шаблона"
 
 
 class NotificationExistsHTTPError(ObjectExistsHTTPError):
-    status_code = 409
+    status_code = status.HTTP_409_CONFLICT
     detail = "Не удалось создать новые уведомления, так как уже существуют уведомления с такими же параметрами"
 
 
 class ValueOutOfRangeHTTPError(NotiHubBaseHTTPError):
-    status_code = 422
+    status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -222,24 +222,24 @@ class ValueOutOfRangeHTTPError(NotiHubBaseHTTPError):
 
 
 class CategoryInUseHTTPError(NotiHubBaseHTTPError):
-    status_code = 409
+    status_code = status.HTTP_409_CONFLICT
 
 
 class ScheduleNotFoundHTTPError(ObjectNotFoundHTTPError):
-    status_code = 404
+    status_code = status.HTTP_404_NOT_FOUND
     detail = "Расписание не найдено"
 
 
 class ScheduleAlreadyExistsHTTPError(ObjectExistsHTTPError):
-    status_code = 409
+    status_code = status.HTTP_409_CONFLICT
     detail = "Расписание уже существует"
 
 
 class InvalidDatetimeRangeHTTPError(NotiHubBaseHTTPError):
-    status_code = 422
+    status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
     detail = "Неверный диапазон даты и времени"
 
 
 class ForbiddenHTMLTemplateHTTPError(NotiHubBaseHTTPError):
-    status_code = 422
+    status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
     detail = "Шаблон HTML запрещен"

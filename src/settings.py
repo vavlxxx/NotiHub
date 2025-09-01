@@ -10,7 +10,12 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 
-@dataclass(frozen=True, repr=False, eq=False, slots=True)
+@dataclass(
+    frozen=True,
+    repr=False,
+    eq=False,
+    slots=True,
+)
 class Settings:
     DB_USER: str
     DB_PASS: str
